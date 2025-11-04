@@ -261,7 +261,8 @@ const DiceGame: React.FC = () => {
         newScores[currentPlayer] += result;
         setScores(newScores);
 
-        const newHistory: [string, number][] = [[`${playerNames[currentPlayer]}`, result], ...rollHistory].slice(0, 5);
+       const newRoll: [string, number] = [`${playerNames[currentPlayer]}`, result];
+const newHistory = [newRoll, ...rollHistory].slice(0, 5);
         setRollHistory(newHistory);
 
         if (newScores[currentPlayer] >= targetScore) {
