@@ -261,8 +261,7 @@ const DiceGame: React.FC = () => {
         newScores[currentPlayer] += result;
         setScores(newScores);
 
-       const newRoll: [string, number] = [`${playerNames[currentPlayer]}`, result];
-const newHistory = [newRoll, ...rollHistory].slice(0, 5);
+        const newHistory: [string, number][] = [[`${playerNames[currentPlayer]}`, result], ...rollHistory].slice(0, 5);
         setRollHistory(newHistory);
 
         if (newScores[currentPlayer] >= targetScore) {
@@ -313,9 +312,19 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
   // Setup Screen
   if (gameState === 'setup') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex items-center justify-center p-6" 
+      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col" 
            style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
-        <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        
+        {/* Header Ad Space */}
+        <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px]">
+          <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+            {/* Place your Adsterra ad code here */}
+            <span className="p-4">Header Ad Space (728x90 or any Adsterra ad size)</span>
+          </div>
+        </div>
+
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 max-w-md w-full">
           <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
           <p className="text-center text-gray-600 mb-8">Roll to victory!</p>
           
@@ -386,6 +395,14 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
             </button>
           </div>
         </div>
+
+        {/* Footer Ad Space */}
+        <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px]">
+          <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+            {/* Place your Adsterra ad code here */}
+            <span className="p-4">Footer Ad Space (728x90 or any Adsterra ad size)</span>
+          </div>
+        </div>
       </div>
     );
   }
@@ -393,9 +410,17 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
   // Won Screen
   if (gameState === 'won') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex items-center justify-center p-6 relative overflow-hidden" 
+      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col relative overflow-hidden" 
            style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
         
+        {/* Header Ad Space */}
+        <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px] relative z-10">
+          <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+            {/* Place your Adsterra ad code here */}
+            <span className="p-4">Header Ad Space (728x90 or any Adsterra ad size)</span>
+          </div>
+        </div>
+
         {/* Falling Flowers */}
         {flowers.map(flower => (
           <div
@@ -421,23 +446,33 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
           }
         `}</style>
 
-        <div className="text-center relative z-10">
-          <div className="text-8xl mb-6 animate-bounce">🎉</div>
-          <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
-            {playerNames[winner!]} Wins!
-          </h1>
-          <p className="text-2xl text-yellow-100 mb-4 bg-black bg-opacity-50 p-3 rounded-lg">
-            {voiceMessage}
-          </p>
-          <p className="text-2xl text-yellow-100 mb-8">
-            Final Score: {scores[winner!]} points
-          </p>
-          <button
-            onClick={resetGame}
-            className="px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 shadow-lg transform hover:scale-105 transition-all"
-          >
-            Play Again
-          </button>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="text-center relative z-10">
+            <div className="text-8xl mb-6 animate-bounce">🎉</div>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              {playerNames[winner!]} Wins!
+            </h1>
+            <p className="text-2xl text-yellow-100 mb-4 bg-black bg-opacity-50 p-3 rounded-lg">
+              {voiceMessage}
+            </p>
+            <p className="text-2xl text-yellow-100 mb-8">
+              Final Score: {scores[winner!]} points
+            </p>
+            <button
+              onClick={resetGame}
+              className="px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 shadow-lg transform hover:scale-105 transition-all"
+            >
+              Play Again
+            </button>
+          </div>
+        </div>
+
+        {/* Footer Ad Space */}
+        <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px] relative z-10">
+          <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+            {/* Place your Adsterra ad code here */}
+            <span className="p-4">Footer Ad Space (728x90 or any Adsterra ad size)</span>
+          </div>
         </div>
       </div>
     );
@@ -447,6 +482,14 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
   return (
     <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col" 
          style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
+      
+      {/* Header Ad Space */}
+      <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px]">
+        <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+          {/* Place your Adsterra ad code here */}
+          <span className="p-4">Header Ad Space (728x90 or any Adsterra ad size)</span>
+        </div>
+      </div>
       
       {/* Header */}
       <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
@@ -543,6 +586,14 @@ const newHistory = [newRoll, ...rollHistory].slice(0, 5);
 
         {/* Right Sidebar - Empty for balance */}
         <div className="w-64"></div>
+      </div>
+
+      {/* Footer Ad Space */}
+      <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px]">
+        <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
+          {/* Place your Adsterra ad code here */}
+          <span className="p-4">Footer Ad Space (728x90 or any Adsterra ad size)</span>
+        </div>
       </div>
     </div>
   );
