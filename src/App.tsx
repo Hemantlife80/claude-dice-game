@@ -224,7 +224,7 @@ const DiceGame: React.FC = () => {
       const canvas = document.createElement('canvas');
       canvas.width = 128; canvas.height = 128;
       const ctx = canvas.getContext('2d');
-      if (!ctx) return new THREE.Texture();
+      if (!ctx) return new THREE.CanvasTexture(document.createElement('canvas')); // <-- यह सही लाइन है
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
       ctx.fillStyle = '#000000';
       const dotRadius = 7;
