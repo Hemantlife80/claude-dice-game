@@ -4,6 +4,7 @@ import { Volume2, VolumeX } from 'lucide-react';
 
 const DiceGame: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // ... (बाकी सारे useRef और useState हुक्स वैसे ही रहेंगे)
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -24,6 +25,7 @@ const DiceGame: React.FC = () => {
   const [flowers, setFlowers] = useState<Array<{id: number; left: number; delay: number; duration: number}>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // ... (useEffect, playSound, speakMessage, etc. सारे फंक्शन वैसे ही रहेंगे)
   // Trigger win celebration
   useEffect(() => {
     if (gameState === 'won' && winner !== null) {
@@ -115,18 +117,20 @@ const DiceGame: React.FC = () => {
     diceRef.current = dice;
 
     const animate = () => {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+          requestAnimationFrame(animate);
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
     };
     animate();
 
     const handleResize = () => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
       const newWidth = containerRef.current.clientWidth;
       const newHeight = containerRef.current.clientHeight;
-      camera.aspect = newWidth / newHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(newWidth, newHeight);
+      cameraRef.current.aspect = newWidth / newHeight;
+      cameraRef.current.updateProjectionMatrix();
+      rendererRef.current.setSize(newWidth, newHeight);
     };
 
     window.addEventListener('resize', handleResize);
@@ -261,7 +265,8 @@ const DiceGame: React.FC = () => {
         newScores[currentPlayer] += result;
         setScores(newScores);
 
-        const newHistory: [string, number][] = [[`${playerNames[currentPlayer]}`, result], ...rollHistory].slice(0, 5);
+        const newRoll: [string, number] = [`${playerNames[currentPlayer]}`, result];
+        const newHistory = [newRoll, ...rollHistory].slice(0, 5);
         setRollHistory(newHistory);
 
         if (newScores[currentPlayer] >= targetScore) {
@@ -325,77 +330,78 @@ const DiceGame: React.FC = () => {
 
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 max-w-md w-full">
-          <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
-          <p className="text-center text-gray-600 mb-8">Roll to victory!</p>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Number of Players</label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4].map(n => (
-                  <button
-                    key={n}
-                    onClick={() => setNumPlayers(n)}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
-                      numPlayers === n
-                        ? 'bg-amber-700 text-white shadow-lg scale-105'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
+            <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
+            <p className="text-center text-gray-600 mb-8">Roll to victory!</p>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Number of Players</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setNumPlayers(n)}
+                      className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                        numPlayers === n
+                          ? 'bg-amber-700 text-white shadow-lg scale-105'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Player Names</label>
-              <div className="space-y-2">
-                {Array(numPlayers).fill(0).map((_, i) => (
-                  <input
-                    key={i}
-                    type="text"
-                    placeholder={`Player ${i + 1}`}
-                    value={playerNames[i]}
-                    onChange={(e) => {
-                      const newNames = [...playerNames];
-                      newNames[i] = e.target.value;
-                      setPlayerNames(newNames);
-                    }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700"
-                  />
-                ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Player Names</label>
+                <div className="space-y-2">
+                  {Array(numPlayers).fill(0).map((_, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      placeholder={`Player ${i + 1}`}
+                      value={playerNames[i]}
+                      onChange={(e) => {
+                        const newNames = [...playerNames];
+                        newNames[i] = e.target.value;
+                        setPlayerNames(newNames);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-700"
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Target Score</label>
-              <div className="flex gap-2">
-                {[30, 50, 75, 100].map(score => (
-                  <button
-                    key={score}
-                    onClick={() => setTargetScore(score)}
-                    className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
-                      targetScore === score
-                        ? 'bg-amber-700 text-white shadow-lg scale-105'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {score}
-                  </button>
-                ))}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Target Score</label>
+                <div className="flex gap-2">
+                  {[30, 50, 75, 100].map(score => (
+                    <button
+                      key={score}
+                      onClick={() => setTargetScore(score)}
+                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
+                        targetScore === score
+                          ? 'bg-amber-700 text-white shadow-lg scale-105'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      }`}
+                    >
+                      {score}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <button
-              onClick={startGame}
-              className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 shadow-lg transform hover:scale-105 transition-all"
-            >
-              Start Game
-            </button>
+              <button
+                onClick={startGame}
+                className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 shadow-lg transform hover:scale-105 transition-all"
+              >
+                Start Game
+              </button>
+            </div>
           </div>
         </div>
-
+        
         {/* Footer Ad Space */}
         <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px]">
           <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
@@ -407,6 +413,7 @@ const DiceGame: React.FC = () => {
     );
   }
 
+  // ... (Won Screen and Main Game Screen remain the same)
   // Won Screen
   if (gameState === 'won') {
     return (
@@ -450,13 +457,13 @@ const DiceGame: React.FC = () => {
           <div className="text-center relative z-10">
             <div className="text-8xl mb-6 animate-bounce">🎉</div>
             <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">
-              {playerNames[winner!]} Wins!
+              {winner !== null && playerNames[winner]} Wins!
             </h1>
             <p className="text-2xl text-yellow-100 mb-4 bg-black bg-opacity-50 p-3 rounded-lg">
               {voiceMessage}
             </p>
             <p className="text-2xl text-yellow-100 mb-8">
-              Final Score: {scores[winner!]} points
+              Final Score: {winner !== null && scores[winner]} points
             </p>
             <button
               onClick={resetGame}
