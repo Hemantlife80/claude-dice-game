@@ -2,15 +2,16 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { Volume2, VolumeX } from 'lucide-react';
 
-// --- Adsterra Ad Components (Reusable) ---
+// --- Adsterra Ad Components (Improved and Reusable) ---
 
 // Component for the 728x90 Banner Ad
-const Banner728x90Ad: React.FC = () => {
+const Banner728x90Ad: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
   useEffect(() => {
-    // This is a workaround to make the ad script work in React
-    const adScriptContainer = document.createElement('div');
-    adScriptContainer.innerHTML = `
-      <script type="text/javascript">
+    const adContainer = document.getElementById(`ad-container-${adKey}`);
+    if (adContainer && adContainer.children.length === 0) {
+      const configScript = document.createElement('script');
+      configScript.type = 'text/javascript';
+      configScript.innerHTML = `
         atOptions = {
           'key' : 'fdc37f8272fccef0821d6e27c13e1e96',
           'format' : 'iframe',
@@ -18,34 +19,25 @@ const Banner728x90Ad: React.FC = () => {
           'width' : 728,
           'params' : {}
         };
-      </script>
-      <script type="text/javascript" src="//www.highperformanceformat.com/fdc37f8272fccef0821d6e27c13e1e96/invoke.js"></script>
-    `;
+      `;
+      
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = "//www.highperformanceformat.com/fdc37f8272fccef0821d6e27c13e1e96/invoke.js";
 
-    // We create a new div to host the ad
-    const adHost = document.getElementById('ad-container-728x90');
-    if (adHost) {
-      adHost.innerHTML = ''; // Clear previous ad
-      adHost.appendChild(adScriptContainer);
+      adContainer.appendChild(configScript);
+      adContainer.appendChild(invokeScript);
     }
-    
-    // Cleanup on component unmount is tricky for this type of ad, but we try
-    return () => {
-      if (adHost) {
-        adHost.innerHTML = '';
-      }
-    };
-  }, []);
+  }, [adKey]);
 
-  return <div id="ad-container-728x90" style={{ minWidth: '728px', minHeight: '90px' }}></div>;
-};
+  return <div id={`ad-container-${adKey}`} className="flex justify-center items-center" style={{ minWidth: '728px', minHeight: '90px' }}></div>;
+});
 
 // Component for the Native Banner Ad
-const NativeBannerAd: React.FC = () => {
-  const adContainerId = 'container-15a1a2f7e865b1d8473f6b64872de991';
-
+const NativeBannerAd: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
   useEffect(() => {
-    const adContainer = document.getElementById(adContainerId);
+    const containerId = `container-15a1a2f7e865b1d8473f6b64872de991-${adKey}`;
+    const adContainer = document.getElementById(containerId);
 
     if (adContainer && adContainer.children.length === 0) {
         const adScript = document.createElement('script');
@@ -54,39 +46,31 @@ const NativeBannerAd: React.FC = () => {
         adScript.src = '//pl27986393.effectivegatecpm.com/15a1a2f7e865b1d8473f6b64872de991/invoke.js';
         
         const adDiv = document.createElement('div');
-        adDiv.id = adContainerId + '-child'; // Give child a unique ID
+        adDiv.id = `div-15a1a2f7e865b1d8473f6b64872de991-${adKey}`;
         
         adContainer.appendChild(adScript);
         adContainer.appendChild(adDiv);
     }
+  }, [adKey]);
 
-    // Cleanup function to remove the ad on unmount
-    return () => {
-        const childAd = document.getElementById(adContainerId + '-child');
-        if (childAd) {
-            childAd.remove();
-        }
-    };
-  }, []);
-
-  return <div id={adContainerId}></div>;
-};
+  return <div id={`container-15a1a2f7e865b1d8473f6b64872de991-${adKey}`}></div>;
+});
 
 
 // --- Ad Space Components (Styling Wrappers) ---
 
-const HeaderAdSpace: React.FC = () => (
+const HeaderAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
   <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px] w-full relative z-20">
     <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
-      <Banner728x90Ad />
+      <Banner728x90Ad adKey={`header-${adKey}`} />
     </div>
   </div>
 );
 
-const FooterAdSpace: React.FC = () => (
+const FooterAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
   <div className="bg-gray-800 bg-opacity-90 p-2 flex justify-center items-center min-h-[90px] w-full relative z-20">
     <div className="w-full max-w-7xl bg-gray-700 bg-opacity-50 rounded flex items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-600">
-      <NativeBannerAd />
+      <NativeBannerAd adKey={`footer-${adKey}`} />
     </div>
   </div>
 );
@@ -96,9 +80,6 @@ const FooterAdSpace: React.FC = () => (
 
 const DiceGame: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene | null>(null);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const diceRef = useRef<THREE.Mesh | null>(null);
   
   const [gameState, setGameState] = useState<'setup' | 'playing' | 'won'>('setup');
@@ -119,7 +100,7 @@ const DiceGame: React.FC = () => {
   const speakMessage = useCallback((message: string) => {
     if (!soundEnabled || typeof window.speechSynthesis === 'undefined') return;
     try {
-      window.speechSynthesis.cancel(); // Cancel any previous speech
+      window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(message);
       window.speechSynthesis.speak(utterance);
     } catch (e) {
@@ -134,21 +115,16 @@ const DiceGame: React.FC = () => {
       if (!AudioCtx) return;
       const audioContext = audioContextRef.current || new AudioCtx();
       audioContextRef.current = audioContext;
-      
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
       oscillator.frequency.value = frequency;
       gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-      
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + duration);
-    } catch (e) {
-      console.log('Audio context not available', e);
-    }
+    } catch (e) { console.log('Audio context not available', e); }
   }, [soundEnabled]);
 
   const playApplauseSound = useCallback(() => {
@@ -158,34 +134,25 @@ const DiceGame: React.FC = () => {
       if (!AudioCtx) return;
       const audioContext = audioContextRef.current || new AudioCtx();
       audioContextRef.current = audioContext;
-      
       const now = audioContext.currentTime;
       for (let i = 0; i < 12; i++) {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
         oscillator.frequency.value = 150 + Math.random() * 400;
         oscillator.type = Math.random() > 0.5 ? 'sine' : 'triangle';
-        
         gainNode.gain.setValueAtTime(0.3, now + i * 0.08);
         gainNode.gain.exponentialRampToValueAtTime(0.01, now + i * 0.08 + 0.2);
-        
         oscillator.start(now + i * 0.08);
         oscillator.stop(now + i * 0.08 + 0.2);
       }
-    } catch (e) {
-      console.log('Audio context not available');
-    }
+    } catch (e) { console.log('Audio context not available', e); }
   }, [soundEnabled]);
 
   const createFlowers = useCallback(() => {
     const newFlowers = Array.from({ length: 30 }, (_, i) => ({
-      id: i,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.5,
-      duration: 2 + Math.random() * 1
+      id: i, left: Math.random() * 100, delay: Math.random() * 0.5, duration: 2 + Math.random() * 1
     }));
     setFlowers(newFlowers);
   }, []);
@@ -203,76 +170,79 @@ const DiceGame: React.FC = () => {
   useEffect(() => {
     if (gameState !== 'playing' || !containerRef.current) return;
     const container = containerRef.current;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x2a2a2a);
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.z = 2.5;
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(width, height);
-    renderer.shadowMap.enabled = true;
-    container.innerHTML = '';
-    container.appendChild(renderer.domElement);
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 5, 5);
-    directionalLight.castShadow = true;
-    scene.add(directionalLight);
-    const createDiceFace = (number: number): THREE.CanvasTexture => {
-      const canvas = document.createElement('canvas');
-      canvas.width = 128; canvas.height = 128;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return new THREE.CanvasTexture(document.createElement('canvas')); // <-- यह सही लाइन है
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
-      ctx.fillStyle = '#000000';
-      const dotRadius = 7;
-      const dotPositions: Record<number, [number, number][]> = {
-        1: [[64, 64]], 2: [[32, 32], [96, 96]], 3: [[32, 32], [64, 64], [96, 96]],
-        4: [[32, 32], [96, 32], [32, 96], [96, 96]], 5: [[32, 32], [96, 32], [64, 64], [32, 96], [96, 96]],
-        6: [[32, 32], [96, 32], [32, 64], [96, 64], [32, 96], [96, 96]]
-      };
-      (dotPositions[number] || []).forEach(([x, y]) => {
-        ctx.beginPath(); ctx.arc(x, y, dotRadius, 0, Math.PI * 2); ctx.fill();
-      });
-      return new THREE.CanvasTexture(canvas);
-    };
-    const materials = [
-      new THREE.MeshStandardMaterial({ map: createDiceFace(1) }), new THREE.MeshStandardMaterial({ map: createDiceFace(6) }),
-      new THREE.MeshStandardMaterial({ map: createDiceFace(2) }), new THREE.MeshStandardMaterial({ map: createDiceFace(5) }),
-      new THREE.MeshStandardMaterial({ map: createDiceFace(3) }), new THREE.MeshStandardMaterial({ map: createDiceFace(4) })
-    ];
-    const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-    const dice = new THREE.Mesh(geometry, materials);
-    dice.castShadow = true; dice.receiveShadow = true;
-    scene.add(dice);
-    sceneRef.current = scene; cameraRef.current = camera; rendererRef.current = renderer; diceRef.current = dice;
+    let renderer: THREE.WebGLRenderer;
     let animationFrameId: number;
-    const animate = () => {
-      animationFrameId = requestAnimationFrame(animate);
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
+
+    const init = () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x2a2a2a);
+      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      camera.position.z = 2.5;
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(width, height);
+      renderer.shadowMap.enabled = true;
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 5, 5);
+      directionalLight.castShadow = true;
+      scene.add(directionalLight);
+      const createDiceFace = (number: number): THREE.CanvasTexture => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return new THREE.CanvasTexture(document.createElement('canvas'));
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
+        ctx.fillStyle = '#000000';
+        const dotRadius = 7;
+        const dotPositions: Record<number, [number, number][]> = {
+          1: [[64, 64]], 2: [[32, 32], [96, 96]], 3: [[32, 32], [64, 64], [96, 96]],
+          4: [[32, 32], [96, 32], [32, 96], [96, 96]], 5: [[32, 32], [96, 32], [64, 64], [32, 96], [96, 96]],
+          6: [[32, 32], [96, 32], [32, 64], [96, 64], [32, 96], [96, 96]]
+        };
+        (dotPositions[number] || []).forEach(([x, y]) => {
+          ctx.beginPath(); ctx.arc(x, y, dotRadius, 0, Math.PI * 2); ctx.fill();
+        });
+        return new THREE.CanvasTexture(canvas);
+      };
+      const materials = [
+        new THREE.MeshStandardMaterial({ map: createDiceFace(1) }), new THREE.MeshStandardMaterial({ map: createDiceFace(6) }),
+        new THREE.MeshStandardMaterial({ map: createDiceFace(2) }), new THREE.MeshStandardMaterial({ map: createDiceFace(5) }),
+        new THREE.MeshStandardMaterial({ map: createDiceFace(3) }), new THREE.MeshStandardMaterial({ map: createDiceFace(4) })
+      ];
+      const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+      diceRef.current = new THREE.Mesh(geometry, materials);
+      diceRef.current.castShadow = true; diceRef.current.receiveShadow = true;
+      scene.add(diceRef.current);
+      const animate = () => {
+        animationFrameId = requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      };
+      animate();
+      const handleResize = () => {
+        if (!container) return;
+        const newWidth = container.clientWidth;
+        const newHeight = container.clientHeight;
+        camera.aspect = newWidth / newHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(newWidth, newHeight);
+      };
+      window.addEventListener('resize', handleResize);
     };
-    animate();
-    const handleResize = () => {
-      if (!containerRef.current || !cameraRef.current || !rendererRef.current) return;
-      const newWidth = containerRef.current.clientWidth;
-      const newHeight = containerRef.current.clientHeight;
-      cameraRef.current.aspect = newWidth / newHeight;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(newWidth, newHeight);
-    };
-    window.addEventListener('resize', handleResize);
+    init();
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
+      if (renderer) renderer.dispose();
+      container.innerHTML = '';
     };
   }, [gameState]);
 
   const rollDice = async () => {
-    if (rolling || gameState !== 'playing') return;
+    if (rolling || gameState !== 'playing' || !diceRef.current) return;
     setRolling(true);
     playSound(800, 0.1);
     const duration = 0.8;
@@ -344,10 +314,9 @@ const DiceGame: React.FC = () => {
     setVoiceMessage(''); setFlowers([]);
   };
 
-  if (gameState === 'setup') {
-    return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
-        <HeaderAdSpace />
+  const renderContent = () => {
+    if (gameState === 'setup') {
+      return (
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="bg-white bg-opacity-95 rounded-2xl shadow-2xl p-8 max-w-md w-full">
             <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
@@ -375,81 +344,86 @@ const DiceGame: React.FC = () => {
             </div>
           </div>
         </div>
-        <FooterAdSpace />
-      </div>
-    );
-  }
+      );
+    }
 
-  if (gameState === 'won') {
-    return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col relative overflow-hidden" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
-        <HeaderAdSpace />
+    if (gameState === 'won' && winner !== null) {
+      return (
         <div className="flex-1 flex items-center justify-center p-6 relative">
           {flowers.map(flower => (<div key={flower.id} className="absolute text-4xl" style={{left: `${flower.left}%`, top: '-50px', animation: `fall ${flower.duration}s linear ${flower.delay}s forwards`, opacity: 0.8}}>🌸</div>))}
-          <style>{`@keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`}</style>
+          <style>{`@keyframes fall { to { transform: translateY(100vh) rotate(3Gdeg); opacity: 0; } }`}</style>
           <div className="text-center relative z-10">
             <div className="text-8xl mb-6 animate-bounce">🎉</div>
-            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">{winner !== null && playerNames[winner]} Wins!</h1>
+            <h1 className="text-5xl font-bold text-white mb-4 drop-shadow-lg">{playerNames[winner]} Wins!</h1>
             <p className="text-2xl text-yellow-100 mb-4 bg-black bg-opacity-50 p-3 rounded-lg">{voiceMessage}</p>
-            <p className="text-2xl text-yellow-100 mb-8">Final Score: {winner !== null && scores[winner]} points</p>
+            <p className="text-2xl text-yellow-100 mb-8">Final Score: {scores[winner]} points</p>
             <button onClick={resetGame} className="px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 shadow-lg transform hover:scale-105 transition-all">Play Again</button>
           </div>
         </div>
-        <FooterAdSpace />
+      );
+    }
+
+    // Main Game Screen Content
+    return (
+      <div className="w-full flex-1 flex flex-col">
+        <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Dice Roller</h1>
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
+            {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </button>
+        </div>
+        <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+          <div className="w-64 space-y-4">
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+              <h2 className="font-bold text-lg text-amber-900 mb-4">Scoreboard</h2>
+              <div className="space-y-2">
+                {Array.from({length: numPlayers}).map((_, i) => (<div key={i} className={`p-3 rounded-lg font-semibold transition-all ${currentPlayer === i ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg scale-105' : 'bg-gray-100 text-gray-800'}`}>
+                  <div className="text-sm opacity-75">{playerNames[i]}</div>
+                  <div className="text-2xl">{scores[i]}</div>
+                </div>))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-300">
+                <p className="text-sm text-gray-700">Target: <span className="font-bold">{targetScore}</span></p>
+              </div>
+            </div>
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+              <h3 className="font-bold text-amber-900 mb-3">Recent Rolls</h3>
+              <div className="space-y-2">
+                {rollHistory.length === 0 ? (<p className="text-gray-500 text-sm text-center py-4">No rolls yet</p>) : (rollHistory.map((roll, i) => (<div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                  <span className="text-sm font-semibold text-gray-700">{roll[0]}</span>
+                  <span className="bg-amber-600 text-white px-3 py-1 rounded-full font-bold text-sm">{roll[1]}</span>
+                </div>)))}
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-xl shadow-2xl" />
+            <div className="text-center">
+              <p className="text-white text-lg mb-2">Current Player: <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span></p>
+              {voiceMessage && (<p className="text-yellow-200 text-sm mb-2 bg-black bg-opacity-50 p-2 rounded-lg">{voiceMessage}</p>)}
+              {lastRoll && (<div className="text-6xl font-bold text-amber-300 drop-shadow-lg animate-bounce">{lastRoll}</div>)}
+            </div>
+            <button onClick={rollDice} disabled={rolling} className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${rolling ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-110 shadow-lg active:scale-95'}`}>
+              {rolling ? 'Rolling...' : 'Roll Dice'}
+            </button>
+            <button onClick={resetGame} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
+              End Game
+            </button>
+          </div>
+          <div className="w-64"></div>
+        </div>
       </div>
     );
-  }
+  };
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}>
-      <HeaderAdSpace />
-      <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Dice Roller</h1>
-        <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
-          {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
-        </button>
-      </div>
-      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        <div className="w-64 space-y-4">
-          <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-            <h2 className="font-bold text-lg text-amber-900 mb-4">Scoreboard</h2>
-            <div className="space-y-2">
-              {Array.from({length: numPlayers}).map((_, i) => (<div key={i} className={`p-3 rounded-lg font-semibold transition-all ${currentPlayer === i ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg scale-105' : 'bg-gray-100 text-gray-800'}`}>
-                <div className="text-sm opacity-75">{playerNames[i]}</div>
-                <div className="text-2xl">{scores[i]}</div>
-              </div>))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-300">
-              <p className="text-sm text-gray-700">Target: <span className="font-bold">{targetScore}</span></p>
-            </div>
-          </div>
-          <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-            <h3 className="font-bold text-amber-900 mb-3">Recent Rolls</h3>
-            <div className="space-y-2">
-              {rollHistory.length === 0 ? (<p className="text-gray-500 text-sm text-center py-4">No rolls yet</p>) : (rollHistory.map((roll, i) => (<div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700">{roll[0]}</span>
-                <span className="bg-amber-600 text-white px-3 py-1 rounded-full font-bold text-sm">{roll[1]}</span>
-              </div>)))}
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-xl shadow-2xl" />
-          <div className="text-center">
-            <p className="text-white text-lg mb-2">Current Player: <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span></p>
-            {voiceMessage && (<p className="text-yellow-200 text-sm mb-2 bg-black bg-opacity-50 p-2 rounded-lg">{voiceMessage}</p>)}
-            {lastRoll && (<div className="text-6xl font-bold text-amber-300 drop-shadow-lg animate-bounce">{lastRoll}</div>)}
-          </div>
-          <button onClick={rollDice} disabled={rolling} className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${rolling ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-110 shadow-lg active:scale-95'}`}>
-            {rolling ? 'Rolling...' : 'Roll Dice'}
-          </button>
-          <button onClick={resetGame} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
-            End Game
-          </button>
-        </div>
-        <div className="w-64"></div>
-      </div>
-      <FooterAdSpace />
+    <div 
+      className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden" 
+      style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
+    >
+      <HeaderAdSpace adKey={gameState} />
+      {renderContent()}
+      <FooterAdSpace adKey={gameState} />
     </div>
   );
 };
