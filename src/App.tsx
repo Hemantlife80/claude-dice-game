@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { Volume2, VolumeX } from 'lucide-react';
 
-// --- Adsterra Ad Components (Final, Robust Version) ---
-
+// --- Adsterra Ad Components (Corrected and Reusable) ---
 const Banner728x90Ad: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
   useEffect(() => {
-    const adContainer = document.getElementById(`ad-container-banner-${adKey}`);
+    const adContainerId = `ad-container-banner-${adKey}`;
+    const adContainer = document.getElementById(adContainerId);
     if (adContainer && adContainer.children.length === 0) {
       const script = document.createElement('script');
       script.type = 'text/javascript';
@@ -23,7 +23,6 @@ const Banner728x90Ad: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
       adContainer.appendChild(script);
     }
   }, [adKey]);
-
   return <div id={`ad-container-banner-${adKey}`} className="flex justify-center items-center w-[728px] h-[90px]"></div>;
 });
 
@@ -31,26 +30,20 @@ const NativeBannerAd: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
   useEffect(() => {
     const containerId = `container-native-${adKey}`;
     const adContainer = document.getElementById(containerId);
-
     if (adContainer && adContainer.children.length === 0) {
         const script = document.createElement('script');
         script.async = true;
         script.setAttribute('data-cfasync', 'false');
         script.src = '//pl27986393.effectivegatecpm.com/15a1a2f7e865b1d8473f6b64872de991/invoke.js';
-        
         const adDiv = document.createElement('div');
-        adDiv.id = 'container-15a1a2f7e865b1d8473f6b64872de991'; // Adsterra requires this exact ID
-        
+        adDiv.id = 'container-15a1a2f7e865b1d8473f6b64872de991';
         adContainer.appendChild(script);
         adContainer.appendChild(adDiv);
     }
   }, [adKey]);
-
-  return <div id={containerId} className="flex justify-center items-center min-h-[250px]"></div>; // Added min-height
+  return <div id={containerId} className="flex justify-center items-center min-h-[250px]"></div>;
 });
 
-
-// --- Ad Space Styling Wrappers (Final Version) ---
 const HeaderAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
   <div className="flex justify-center items-center w-full py-2 z-20">
     <Banner728x90Ad adKey={`header-${adKey}`} />
@@ -63,9 +56,7 @@ const FooterAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
   </div>
 );
 
-
-// --- Your Main DiceGame Component (Final Corrected Version) ---
-
+// --- Main DiceGame Component (Final Corrected Version) ---
 const DiceGame: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const diceRef = useRef<THREE.Mesh | null>(null);
@@ -225,11 +216,11 @@ const DiceGame: React.FC = () => {
     return () => {
       cancelAnimationFrame(animationFrameId);
       if (renderer) renderer.dispose();
-      container.innerHTML = '';
+      if(container) container.innerHTML = '';
     };
   }, [gameState]);
 
-  const rollDice = async () => {
+  const rollDice = () => {
     if (rolling || gameState !== 'playing' || !diceRef.current) return;
     setRolling(true);
     playSound(800, 0.1);
@@ -402,9 +393,18 @@ const DiceGame: React.FC = () => {
   return (
     <div 
       className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden" 
-      style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
+      style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H_0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
     >
       <HeaderAdSpace adKey={gameState} />
+      {/* The black bar from the game screen is removed */}
+      {gameState !== 'playing' && 
+        <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Dice Roller</h1>
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
+            {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
+          </button>
+        </div>
+      }
       {renderContent()}
       <FooterAdSpace adKey={gameState} />
     </div>
@@ -412,3 +412,4 @@ const DiceGame: React.FC = () => {
 };
 
 export default DiceGame;
+
