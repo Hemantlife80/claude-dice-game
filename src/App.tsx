@@ -41,7 +41,7 @@ const NativeBannerAd: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
         adContainer.appendChild(adDiv);
     }
   }, [adKey]);
-  return <div id={containerId} className="flex justify-center items-center min-h-[250px]"></div>;
+  return <div id={`container-native-${adKey}`} className="flex justify-center items-center min-h-[250px]"></div>;
 });
 
 const HeaderAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
@@ -396,8 +396,8 @@ const DiceGame: React.FC = () => {
       style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H_0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
     >
       <HeaderAdSpace adKey={gameState} />
-      {/* The black bar from the game screen is removed */}
-      {gameState !== 'playing' && 
+      {/* Game Header now part of the main game screen */}
+      {gameState === 'playing' &&
         <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold">Dice Roller</h1>
           <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
@@ -412,4 +412,3 @@ const DiceGame: React.FC = () => {
 };
 
 export default DiceGame;
-
