@@ -41,7 +41,7 @@ const NativeBannerAd: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
         adContainer.appendChild(adDiv);
     }
   }, [adKey]);
-  return <div id={`container-native-${adKey}`} className="flex justify-center items-center min-h-[250px]"></div>;
+  return <div id={containerId} className="flex justify-center items-center min-h-[250px]"></div>;
 });
 
 const HeaderAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
@@ -146,77 +146,94 @@ const DiceGame: React.FC = () => {
 
   useEffect(() => {
     if (gameState !== 'playing' || !containerRef.current) return;
+    
     const container = containerRef.current;
-    let renderer: THREE.WebGLRenderer;
-    let animationFrameId: number;
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
+    scene.background = new THREE.Color(0x2a2a2a);
+    const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 2.5;
+    
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.shadowMap.enabled = true;
+    
+    // This is the CRITICAL FIX: Append the renderer's canvas instead of using innerHTML
+    container.appendChild(renderer.domElement);
+    
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 5, 5);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
 
-    const init = () => {
-      const width = container.clientWidth;
-      const height = container.clientHeight;
-      scene.background = new THREE.Color(0x2a2a2a);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-      camera.position.z = 2.5;
-      renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(width, height);
-      renderer.shadowMap.enabled = true;
-      container.innerHTML = '';
-      container.appendChild(renderer.domElement);
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-      scene.add(ambientLight);
-      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-      directionalLight.position.set(5, 5, 5);
-      directionalLight.castShadow = true;
-      scene.add(directionalLight);
-      const createDiceFace = (number: number): THREE.CanvasTexture => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 128; canvas.height = 128;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return new THREE.CanvasTexture(document.createElement('canvas'));
-        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
-        ctx.fillStyle = '#000000';
-        const dotRadius = 7;
-        const dotPositions: Record<number, [number, number][]> = {
-          1: [[64, 64]], 2: [[32, 32], [96, 96]], 3: [[32, 32], [64, 64], [96, 96]],
-          4: [[32, 32], [96, 32], [32, 96], [96, 96]], 5: [[32, 32], [96, 32], [64, 64], [32, 96], [96, 96]],
-          6: [[32, 32], [96, 32], [32, 64], [96, 64], [32, 96], [96, 96]]
-        };
-        (dotPositions[number] || []).forEach(([x, y]) => {
-          ctx.beginPath(); ctx.arc(x, y, dotRadius, 0, Math.PI * 2); ctx.fill();
-        });
-        return new THREE.CanvasTexture(canvas);
+    const createDiceFace = (number: number): THREE.CanvasTexture => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 128; canvas.height = 128;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return new THREE.CanvasTexture(document.createElement('canvas'));
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 128, 128);
+      ctx.fillStyle = '#000000';
+      const dotRadius = 7;
+      const dotPositions: Record<number, [number, number][]> = {
+        1: [[64, 64]], 2: [[32, 32], [96, 96]], 3: [[32, 32], [64, 64], [96, 96]],
+        4: [[32, 32], [96, 32], [32, 96], [96, 96]], 5: [[32, 32], [96, 32], [64, 64], [32, 96], [96, 96]],
+        6: [[32, 32], [96, 32], [32, 64], [96, 64], [32, 96], [96, 96]]
       };
-      const materials = [
-        new THREE.MeshStandardMaterial({ map: createDiceFace(1) }), new THREE.MeshStandardMaterial({ map: createDiceFace(6) }),
-        new THREE.MeshStandardMaterial({ map: createDiceFace(2) }), new THREE.MeshStandardMaterial({ map: createDiceFace(5) }),
-        new THREE.MeshStandardMaterial({ map: createDiceFace(3) }), new THREE.MeshStandardMaterial({ map: createDiceFace(4) })
-      ];
-      const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-      diceRef.current = new THREE.Mesh(geometry, materials);
-      diceRef.current.castShadow = true; diceRef.current.receiveShadow = true;
-      scene.add(diceRef.current);
-      const animate = () => {
-        animationFrameId = requestAnimationFrame(animate);
-        renderer.render(scene, camera);
-      };
-      animate();
-      const handleResize = () => {
-        if (!container) return;
-        const newWidth = container.clientWidth;
-        const newHeight = container.clientHeight;
-        camera.aspect = newWidth / newHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(newWidth, newHeight);
-      };
-      window.addEventListener('resize', handleResize);
+      (dotPositions[number] || []).forEach(([x, y]) => {
+        ctx.beginPath(); ctx.arc(x, y, dotRadius, 0, Math.PI * 2); ctx.fill();
+      });
+      return new THREE.CanvasTexture(canvas);
     };
-    init();
+
+    const materials = [
+      new THREE.MeshStandardMaterial({ map: createDiceFace(1) }), new THREE.MeshStandardMaterial({ map: createDiceFace(6) }),
+      new THREE.MeshStandardMaterial({ map: createDiceFace(2) }), new THREE.MeshStandardMaterial({ map: createDiceFace(5) }),
+      new THREE.MeshStandardMaterial({ map: createDiceFace(3) }), new THREE.MeshStandardMaterial({ map: createDiceFace(4) })
+    ];
+    const geometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+    diceRef.current = new THREE.Mesh(geometry, materials);
+    diceRef.current.castShadow = true; diceRef.current.receiveShadow = true;
+    scene.add(diceRef.current);
+
+    let animationFrameId: number;
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+    animate();
+
+    const handleResize = () => {
+      if (!container) return;
+      const newWidth = container.clientWidth;
+      const newHeight = container.clientHeight;
+      camera.aspect = newWidth / newHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(newWidth, newHeight);
+    };
+    window.addEventListener('resize', handleResize);
+
+    // This is the CRITICAL FIX: Proper cleanup function
     return () => {
       cancelAnimationFrame(animationFrameId);
-      if (renderer) renderer.dispose();
-      if(container) container.innerHTML = '';
+      window.removeEventListener('resize', handleResize);
+      renderer.dispose();
+      // Safely remove the canvas from the DOM
+      if (container && container.contains(renderer.domElement)) {
+        container.removeChild(renderer.domElement);
+      }
+      // Clean up scene resources
+      scene.traverse(object => {
+        if (object instanceof THREE.Mesh) {
+          if (object.geometry) object.geometry.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach(material => material.dispose());
+          } else if (object.material) {
+            object.material.dispose();
+          }
+        }
+      });
+      diceRef.current = null;
     };
   }, [gameState]);
 
@@ -342,50 +359,54 @@ const DiceGame: React.FC = () => {
       );
     }
 
-    // Main Game Screen Content
     return (
-      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        {/* Left Sidebar */}
-        <div className="w-64 space-y-4">
-          <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-            <h2 className="font-bold text-lg text-amber-900 mb-4">Scoreboard</h2>
-            <div className="space-y-2">
-              {Array.from({length: numPlayers}).map((_, i) => (<div key={i} className={`p-3 rounded-lg font-semibold transition-all ${currentPlayer === i ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg scale-105' : 'bg-gray-100 text-gray-800'}`}>
-                <div className="text-sm opacity-75">{playerNames[i]}</div>
-                <div className="text-2xl">{scores[i]}</div>
-              </div>))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-300">
-              <p className="text-sm text-gray-700">Target: <span className="font-bold">{targetScore}</span></p>
-            </div>
-          </div>
-          <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
-            <h3 className="font-bold text-amber-900 mb-3">Recent Rolls</h3>
-            <div className="space-y-2">
-              {rollHistory.length === 0 ? (<p className="text-gray-500 text-sm text-center py-4">No rolls yet</p>) : (rollHistory.map((roll, i) => (<div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
-                <span className="text-sm font-semibold text-gray-700">{roll[0]}</span>
-                <span className="bg-amber-600 text-white px-3 py-1 rounded-full font-bold text-sm">{roll[1]}</span>
-              </div>)))}
-            </div>
-          </div>
-        </div>
-        {/* Center Content */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-xl shadow-2xl" />
-          <div className="text-center">
-            <p className="text-white text-lg mb-2">Current Player: <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span></p>
-            {voiceMessage && (<p className="text-yellow-200 text-sm mb-2 bg-black bg-opacity-50 p-2 rounded-lg">{voiceMessage}</p>)}
-            {lastRoll && (<div className="text-6xl font-bold text-amber-300 drop-shadow-lg animate-bounce">{lastRoll}</div>)}
-          </div>
-          <button onClick={rollDice} disabled={rolling} className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${rolling ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-110 shadow-lg active:scale-95'}`}>
-            {rolling ? 'Rolling...' : 'Roll Dice'}
-          </button>
-          <button onClick={resetGame} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
-            End Game
+      <div className="w-full flex-1 flex flex-col overflow-hidden">
+        <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Dice Roller</h1>
+          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
+            {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
           </button>
         </div>
-        {/* Right Sidebar */}
-        <div className="w-64"></div>
+        <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+          <div className="w-64 space-y-4">
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+              <h2 className="font-bold text-lg text-amber-900 mb-4">Scoreboard</h2>
+              <div className="space-y-2">
+                {Array.from({length: numPlayers}).map((_, i) => (<div key={i} className={`p-3 rounded-lg font-semibold transition-all ${currentPlayer === i ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg scale-105' : 'bg-gray-100 text-gray-800'}`}>
+                  <div className="text-sm opacity-75">{playerNames[i]}</div>
+                  <div className="text-2xl">{scores[i]}</div>
+                </div>))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-gray-300">
+                <p className="text-sm text-gray-700">Target: <span className="font-bold">{targetScore}</span></p>
+              </div>
+            </div>
+            <div className="bg-white bg-opacity-95 rounded-xl shadow-lg p-4">
+              <h3 className="font-bold text-amber-900 mb-3">Recent Rolls</h3>
+              <div className="space-y-2">
+                {rollHistory.length === 0 ? (<p className="text-gray-500 text-sm text-center py-4">No rolls yet</p>) : (rollHistory.map((roll, i) => (<div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg">
+                  <span className="text-sm font-semibold text-gray-700">{roll[0]}</span>
+                  <span className="bg-amber-600 text-white px-3 py-1 rounded-full font-bold text-sm">{roll[1]}</span>
+                </div>)))}
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+            <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-xl shadow-2xl" />
+            <div className="text-center">
+              <p className="text-white text-lg mb-2">Current Player: <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span></p>
+              {voiceMessage && (<p className="text-yellow-200 text-sm mb-2 bg-black bg-opacity-50 p-2 rounded-lg">{voiceMessage}</p>)}
+              {lastRoll && (<div className="text-6xl font-bold text-amber-300 drop-shadow-lg animate-bounce">{lastRoll}</div>)}
+            </div>
+            <button onClick={rollDice} disabled={rolling} className={`px-12 py-4 rounded-lg font-bold text-lg transition-all transform ${rolling ? 'bg-gray-500 text-gray-300 cursor-not-allowed' : 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-110 shadow-lg active:scale-95'}`}>
+              {rolling ? 'Rolling...' : 'Roll Dice'}
+            </button>
+            <button onClick={resetGame} className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
+              End Game
+            </button>
+          </div>
+          <div className="w-64"></div>
+        </div>
       </div>
     );
   };
@@ -393,18 +414,9 @@ const DiceGame: React.FC = () => {
   return (
     <div 
       className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden" 
-      style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H_0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
+      style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Crect fill=\'%23744210\' width=\'100\' height=\'100\'/%3E%3Cpath fill=\'%23654321\' d=\'M0 0h100v50H0z\'/%3E%3Cpath fill=\'%23845432\' d=\'M20 20h60v60H20z\'/%3E%3C/svg%3E")'}}
     >
       <HeaderAdSpace adKey={gameState} />
-      {/* Game Header now part of the main game screen */}
-      {gameState === 'playing' &&
-        <div className="bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Dice Roller</h1>
-          <button onClick={() => setSoundEnabled(!soundEnabled)} className="p-2 hover:bg-white hover:bg-opacity-20 rounded-lg transition-all">
-            {soundEnabled ? <Volume2 size={24} /> : <VolumeX size={24} />}
-          </button>
-        </div>
-      }
       {renderContent()}
       <FooterAdSpace adKey={gameState} />
     </div>
