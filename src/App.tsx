@@ -2,11 +2,12 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import { Volume2, VolumeX } from 'lucide-react';
 
-// --- Adsterra Ad Components (Corrected and Reusable) ---
+// --- Adsterra Ad Components (Fixed) ---
 const Banner728x90Ad: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
+  const containerId = `ad-container-banner-${adKey}`;
+  
   useEffect(() => {
-    const adContainerId = `ad-container-banner-${adKey}`;
-    const adContainer = document.getElementById(adContainerId);
+    const adContainer = document.getElementById(containerId);
     if (adContainer && adContainer.children.length === 0) {
       const script = document.createElement('script');
       script.type = 'text/javascript';
@@ -22,41 +23,46 @@ const Banner728x90Ad: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
       `;
       adContainer.appendChild(script);
     }
-  }, [adKey]);
-  return <div id={`ad-container-banner-${adKey}`} className="flex justify-center items-center w-[728px] h-[90px]"></div>;
+  }, [containerId]);
+  
+  return <div id={containerId} className="flex justify-center items-center w-full h-[90px] bg-gray-200"></div>;
 });
 
 const NativeBannerAd: React.FC<{ adKey: string }> = React.memo(({ adKey }) => {
+  const nativeContainerId = `container-native-${adKey}`;
+  
   useEffect(() => {
-    const containerId = `container-native-${adKey}`;
-    const adContainer = document.getElementById(containerId);
+    const adContainer = document.getElementById(nativeContainerId);
     if (adContainer && adContainer.children.length === 0) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.setAttribute('data-cfasync', 'false');
-        script.src = '//pl27986393.effectivegatecpm.com/15a1a2f7e865b1d8473f6b64872de991/invoke.js';
-        const adDiv = document.createElement('div');
-        adDiv.id = 'container-15a1a2f7e865b1d8473f6b64872de991';
-        adContainer.appendChild(script);
-        adContainer.appendChild(adDiv);
+      const script = document.createElement('script');
+      script.async = true;
+      script.setAttribute('data-cfasync', 'false');
+      script.src = '//pl27986393.effectivegatecpm.com/15a1a2f7e865b1d8473f6b64872de991/invoke.js';
+      
+      const adDiv = document.createElement('div');
+      adDiv.id = 'container-15a1a2f7e865b1d8473f6b64872de991';
+      
+      adContainer.appendChild(adDiv);
+      adContainer.appendChild(script);
     }
-  }, [adKey]);
-  return <div id={containerId} className="flex justify-center items-center min-h-[250px]"></div>;
+  }, [nativeContainerId]);
+  
+  return <div id={nativeContainerId} className="flex justify-center items-center w-full min-h-[250px] bg-gray-200"></div>;
 });
 
 const HeaderAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
-  <div className="flex justify-center items-center w-full py-2 z-20">
+  <div className="w-full py-2 bg-gray-100 border-b border-gray-300">
     <Banner728x90Ad adKey={`header-${adKey}`} />
   </div>
 );
 
 const FooterAdSpace: React.FC<{ adKey: string }> = ({ adKey }) => (
-  <div className="flex justify-center items-center w-full py-2 z-20">
+  <div className="w-full py-2 bg-gray-100 border-t border-gray-300">
     <NativeBannerAd adKey={`footer-${adKey}`} />
   </div>
 );
 
-// --- Main DiceGame Component (Final Corrected Version) ---
+// --- Main DiceGame Component ---
 const DiceGame: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const diceRef = useRef<THREE.Mesh | null>(null);
@@ -157,7 +163,6 @@ const DiceGame: React.FC = () => {
     renderer.setSize(container.clientWidth, container.clientHeight);
     renderer.shadowMap.enabled = true;
     
-    // This is the CRITICAL FIX: Append the renderer's canvas instead of using innerHTML
     container.appendChild(renderer.domElement);
     
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -213,16 +218,13 @@ const DiceGame: React.FC = () => {
     };
     window.addEventListener('resize', handleResize);
 
-    // This is the CRITICAL FIX: Proper cleanup function
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
-      // Safely remove the canvas from the DOM
       if (container && container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
-      // Clean up scene resources
       scene.traverse(object => {
         if (object instanceof THREE.Mesh) {
           if (object.geometry) object.geometry.dispose();
