@@ -1,18 +1,83 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Minimal Ad Components (No external scripts) ---
-const HeaderAdSpace: React.FC = () => (
-  <div className="w-full h-12 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs text-gray-600">
-    [Ad Space]
-  </div>
-);
+// --- Banner Ad Component (728x90) ---
+const HeaderAdSpace: React.FC = () => {
+  const containerId = 'adsterra-banner-header';
 
-const FooterAdSpace: React.FC = () => (
-  <div className="w-full h-12 bg-gray-200 border-t border-gray-300 flex items-center justify-center text-xs text-gray-600">
-    [Ad Space]
-  </div>
-);
+  useEffect(() => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    try {
+      // Clear previous content
+      container.innerHTML = '';
+
+      // Set atOptions globally
+      (window as any).atOptions = {
+        'key': '6fad9591d92e09530553ac6bf74d9820',
+        'format': 'iframe',
+        'height': 90,
+        'width': 728,
+        'params': {}
+      };
+
+      // Create and append the invoke script
+      const script = document.createElement('script');
+      script.type = 'text/javascript';
+      script.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
+      script.async = true;
+      container.appendChild(script);
+    } catch (e) {
+      console.error('Banner ad error:', e);
+    }
+  }, []);
+
+  return (
+    <div className="w-full flex justify-center items-center bg-gray-100 border-b border-gray-300 py-2">
+      <div id={containerId} className="flex justify-center items-center min-h-[90px]"></div>
+    </div>
+  );
+};
+
+// --- Native Banner Ad Component ---
+const FooterAdSpace: React.FC = () => {
+  const containerId = 'container-5b5e30a41ac609068bc85f8481dde86b';
+
+  useEffect(() => {
+    try {
+      // Create container div if it doesn't exist
+      let container = document.getElementById(containerId);
+      if (!container) {
+        container = document.createElement('div');
+        container.id = containerId;
+        const footerDiv = document.querySelector('#footer-ad-wrapper');
+        if (footerDiv) {
+          footerDiv.appendChild(container);
+        }
+      }
+
+      // Load the native ad script
+      const script = document.createElement('script');
+      script.async = true;
+      script.setAttribute('data-cfasync', 'false');
+      script.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
+      
+      const footerWrapper = document.querySelector('#footer-ad-wrapper');
+      if (footerWrapper) {
+        footerWrapper.appendChild(script);
+      }
+    } catch (e) {
+      console.error('Native ad error:', e);
+    }
+  }, []);
+
+  return (
+    <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-gray-100 border-t border-gray-300 py-2">
+      <div id={containerId} className="flex justify-center items-center min-h-[100px]"></div>
+    </div>
+  );
+};
 
 // --- Main DiceGame Component ---
 const DiceGame: React.FC = () => {
@@ -34,6 +99,7 @@ const DiceGame: React.FC = () => {
   const [winner, setWinner] = useState<number | null>(null);
   const [soundEnabled] = useState<boolean>(true);
   const [voiceMessage, setVoiceMessage] = useState<string>('');
+  const [appError, setAppError] = useState<string | null>(null);
   const [flowers, setFlowers] = useState<Array<{id: number; left: number; delay: number; duration: number}>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -115,11 +181,16 @@ const DiceGame: React.FC = () => {
 
   useEffect(() => {
     if (gameState === 'won' && winner !== null) {
-      playApplauseSound();
-      createFlowers();
-      const congratsMessage = `Congratulations ${playerNames[winner]}, you won!`;
-      setVoiceMessage(congratsMessage);
-      speakMessage(congratsMessage);
+      try {
+        playApplauseSound();
+        createFlowers();
+        const congratsMessage = `Congratulations ${playerNames[winner]}, you won!`;
+        setVoiceMessage(congratsMessage);
+        speakMessage(congratsMessage);
+      } catch (e) {
+        console.error('Win state error:', e);
+        setAppError('Error in win state');
+      }
     }
   }, [gameState, winner, playerNames, speakMessage, playApplauseSound, createFlowers]);
 
@@ -133,7 +204,9 @@ const DiceGame: React.FC = () => {
       }
       if (rendererRef.current && containerRef.current) {
         try {
-          containerRef.current.removeChild(rendererRef.current.domElement);
+          if (containerRef.current.contains(rendererRef.current.domElement)) {
+            containerRef.current.removeChild(rendererRef.current.domElement);
+          }
         } catch (e) {
           console.error('Cleanup error:', e);
         }
@@ -145,7 +218,10 @@ const DiceGame: React.FC = () => {
     }
 
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) {
+      setAppError('Container not found');
+      return;
+    }
 
     try {
       // Only initialize if not already done
@@ -189,7 +265,10 @@ const DiceGame: React.FC = () => {
         const canvas = document.createElement('canvas');
         canvas.width = 128;
         canvas.height = 128;
-        const ctx = canvas.getContext('2d')!;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error('Failed to get canvas context');
+        }
         
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, 128, 128);
@@ -232,14 +311,16 @@ const DiceGame: React.FC = () => {
       // Animation loop
       const animate = () => {
         animationIdRef.current = requestAnimationFrame(animate);
-        renderer.render(scene, camera);
+        if (rendererRef.current) {
+          rendererRef.current.render(scene, camera);
+        }
       };
       animate();
 
       // Handle resize
       const handleResize = () => {
-        const newWidth = container.clientWidth;
-        const newHeight = container.clientHeight;
+        const newWidth = container?.clientWidth || 0;
+        const newHeight = container?.clientHeight || 0;
         if (newWidth > 0 && newHeight > 0 && rendererRef.current) {
           camera.aspect = newWidth / newHeight;
           camera.updateProjectionMatrix();
@@ -254,79 +335,86 @@ const DiceGame: React.FC = () => {
       };
     } catch (error) {
       console.error('Three.js error:', error);
+      setAppError('Three.js initialization failed');
     }
   }, [gameState]);
 
   const rollDice = () => {
     if (rolling || gameState !== 'playing' || !diceRef.current) return;
 
-    setRolling(true);
-    playSound(800, 0.1);
+    try {
+      setRolling(true);
+      playSound(800, 0.1);
 
-    const startTime = Date.now();
-    const result = Math.floor(Math.random() * 6) + 1;
+      const startTime = Date.now();
+      const result = Math.floor(Math.random() * 6) + 1;
 
-    const rotationMap: Record<number, {x: number; y: number; z: number}> = {
-      1: { x: 0, y: -Math.PI / 2, z: 0 },
-      2: { x: Math.PI / 2, y: 0, z: 0 },
-      3: { x: 0, y: 0, z: 0 },
-      4: { x: 0, y: Math.PI, z: 0 },
-      5: { x: -Math.PI / 2, y: 0, z: 0 },
-      6: { x: 0, y: Math.PI / 2, z: 0 }
-    };
+      const rotationMap: Record<number, {x: number; y: number; z: number}> = {
+        1: { x: 0, y: -Math.PI / 2, z: 0 },
+        2: { x: Math.PI / 2, y: 0, z: 0 },
+        3: { x: 0, y: 0, z: 0 },
+        4: { x: 0, y: Math.PI, z: 0 },
+        5: { x: -Math.PI / 2, y: 0, z: 0 },
+        6: { x: 0, y: Math.PI / 2, z: 0 }
+      };
 
-    const targetRotation = rotationMap[result];
+      const targetRotation = rotationMap[result];
 
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / 800, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / 800, 1);
+        const easeProgress = 1 - Math.pow(1 - progress, 3);
 
-      if (diceRef.current) {
-        diceRef.current.rotation.x = targetRotation.x * easeProgress + Math.sin(progress * Math.PI * 10) * (1 - progress) * 2;
-        diceRef.current.rotation.y = targetRotation.y * easeProgress + Math.cos(progress * Math.PI * 10) * (1 - progress) * 2;
-        diceRef.current.rotation.z = Math.random() * Math.PI * 2 * (1 - progress);
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
         if (diceRef.current) {
-          diceRef.current.rotation.x = targetRotation.x;
-          diceRef.current.rotation.y = targetRotation.y;
-          diceRef.current.rotation.z = targetRotation.z;
+          diceRef.current.rotation.x = targetRotation.x * easeProgress + Math.sin(progress * Math.PI * 10) * (1 - progress) * 2;
+          diceRef.current.rotation.y = targetRotation.y * easeProgress + Math.cos(progress * Math.PI * 10) * (1 - progress) * 2;
+          diceRef.current.rotation.z = Math.random() * Math.PI * 2 * (1 - progress);
         }
 
-        setLastRoll(result);
-        playSound(400, 0.2);
-        setRolling(false);
-
-        const newScores = [...scores];
-        newScores[currentPlayer] += result;
-        setScores(newScores);
-
-        const newRoll: [string, number] = [playerNames[currentPlayer], result];
-        setRollHistory([newRoll, ...rollHistory].slice(0, 5));
-
-        if (newScores[currentPlayer] >= targetScore) {
-          setWinner(currentPlayer);
-          setGameState('won');
+        if (progress < 1) {
+          requestAnimationFrame(animate);
         } else {
-          setVoiceMessage(`${playerNames[currentPlayer]}, you rolled ${result}`);
-          speakMessage(`${playerNames[currentPlayer]}, you rolled ${result}`);
-          
-          if (result === 6) {
-            setTimeout(() => {
-              speakMessage(`Congratulations! ${playerNames[currentPlayer]}, you got a six!`);
-            }, 2000);
+          if (diceRef.current) {
+            diceRef.current.rotation.x = targetRotation.x;
+            diceRef.current.rotation.y = targetRotation.y;
+            diceRef.current.rotation.z = targetRotation.z;
           }
 
-          setCurrentPlayer((prev) => (prev + 1) % numPlayers);
-        }
-      }
-    };
+          setLastRoll(result);
+          playSound(400, 0.2);
+          setRolling(false);
 
-    animate();
+          const newScores = [...scores];
+          newScores[currentPlayer] += result;
+          setScores(newScores);
+
+          const newRoll: [string, number] = [playerNames[currentPlayer], result];
+          setRollHistory([newRoll, ...rollHistory].slice(0, 5));
+
+          if (newScores[currentPlayer] >= targetScore) {
+            setWinner(currentPlayer);
+            setGameState('won');
+          } else {
+            setVoiceMessage(`${playerNames[currentPlayer]}, you rolled ${result}`);
+            speakMessage(`${playerNames[currentPlayer]}, you rolled ${result}`);
+            
+            if (result === 6) {
+              setTimeout(() => {
+                speakMessage(`Congratulations! ${playerNames[currentPlayer]}, you got a six!`);
+              }, 2000);
+            }
+
+            setCurrentPlayer((prev) => (prev + 1) % numPlayers);
+          }
+        }
+      };
+
+      animate();
+    } catch (error) {
+      console.error('Roll error:', error);
+      setAppError('Error rolling dice');
+      setRolling(false);
+    }
   };
 
   const startGame = () => {
@@ -354,10 +442,10 @@ const DiceGame: React.FC = () => {
   // Render functions
   if (gameState === 'setup') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden">
         <HeaderAdSpace />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+        <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full my-8">
             <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
             <p className="text-center text-gray-600 mb-8">Roll to victory!</p>
             
@@ -430,9 +518,9 @@ const DiceGame: React.FC = () => {
 
   if (gameState === 'won' && winner !== null) {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden">
         <HeaderAdSpace />
-        <div className="flex-1 flex items-center justify-center p-6 relative overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-6 relative overflow-auto">
           {flowers.map(flower => (
             <div
               key={flower.id}
@@ -448,7 +536,7 @@ const DiceGame: React.FC = () => {
           ))}
           <style>{`@keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`}</style>
           
-          <div className="text-center">
+          <div className="text-center my-8">
             <div className="text-8xl mb-6 animate-bounce">🎉</div>
             <h1 className="text-5xl font-bold text-white mb-4">{playerNames[winner]} Wins!</h1>
             <p className="text-2xl text-yellow-100 mb-8">Final Score: {scores[winner]}</p>
@@ -467,57 +555,57 @@ const DiceGame: React.FC = () => {
 
   // Playing state
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+    <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col overflow-hidden">
       <HeaderAdSpace />
       
-      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-        <div className="w-64 space-y-4">
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            <h2 className="font-bold text-lg text-amber-900 mb-4">Scores</h2>
+      <div className="flex-1 flex gap-4 p-4 overflow-auto">
+        <div className="w-56 space-y-3 flex-shrink-0">
+          <div className="bg-white rounded-xl shadow-lg p-3">
+            <h2 className="font-bold text-lg text-amber-900 mb-3">Scores</h2>
             {Array.from({ length: numPlayers }).map((_, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-lg font-semibold mb-2 transition-all ${
+                className={`p-2 rounded-lg font-semibold mb-2 transition-all text-sm ${
                   currentPlayer === i ? 'bg-amber-600 text-white' : 'bg-gray-100'
                 }`}
               >
-                <div className="text-sm opacity-75">{playerNames[i]}</div>
-                <div className="text-2xl">{scores[i]}</div>
+                <div className="opacity-75">{playerNames[i]}</div>
+                <div className="text-xl">{scores[i]}</div>
               </div>
             ))}
-            <div className="mt-4 pt-4 border-t text-sm text-gray-700">Target: {targetScore}</div>
+            <div className="mt-3 pt-3 border-t text-xs text-gray-700">Target: {targetScore}</div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            <h3 className="font-bold text-amber-900 mb-3">Recent</h3>
+          <div className="bg-white rounded-xl shadow-lg p-3">
+            <h3 className="font-bold text-amber-900 mb-2 text-sm">Recent</h3>
             {rollHistory.length === 0 ? (
-              <p className="text-gray-500 text-sm text-center py-4">No rolls</p>
+              <p className="text-gray-500 text-xs text-center py-3">No rolls</p>
             ) : (
               rollHistory.map((roll, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg mb-2">
-                  <span className="text-sm">{roll[0]}</span>
-                  <span className="bg-amber-600 text-white px-3 py-1 rounded-full font-bold">{roll[1]}</span>
+                <div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg mb-1 text-xs">
+                  <span>{roll[0]}</span>
+                  <span className="bg-amber-600 text-white px-2 py-1 rounded font-bold">{roll[1]}</span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center">
-          <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-xl shadow-2xl mb-6" />
+        <div className="flex-1 flex flex-col items-center justify-center gap-2 min-w-0">
+          <div ref={containerRef} className="w-64 h-64 bg-gray-900 rounded-xl shadow-2xl" />
           
-          <p className="text-white text-lg mb-2">
+          <p className="text-white text-sm">
             <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span>'s Turn
           </p>
           
-          {voiceMessage && <p className="text-yellow-200 text-sm mb-2 bg-black bg-opacity-50 p-2 rounded">{voiceMessage}</p>}
+          {voiceMessage && <p className="text-yellow-200 text-xs mb-1 bg-black bg-opacity-50 p-2 rounded max-w-xs">{voiceMessage}</p>}
           
-          {lastRoll && <div className="text-6xl font-bold text-amber-300 mb-4 animate-bounce">{lastRoll}</div>}
+          {lastRoll && <div className="text-5xl font-bold text-amber-300 mb-2 animate-bounce">{lastRoll}</div>}
 
           <button
             onClick={rollDice}
             disabled={rolling}
-            className={`px-12 py-4 rounded-lg font-bold text-lg mb-4 transition-all ${
+            className={`px-8 py-3 rounded-lg font-bold text-sm mb-2 transition-all ${
               rolling
                 ? 'bg-gray-500 cursor-not-allowed'
                 : 'bg-green-600 hover:bg-green-700 text-white'
@@ -528,13 +616,13 @@ const DiceGame: React.FC = () => {
 
           <button
             onClick={resetGame}
-            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
+            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm"
           >
             End Game
           </button>
         </div>
 
-        <div className="w-64" />
+        <div className="w-56 flex-shrink-0" />
       </div>
 
       <FooterAdSpace />
