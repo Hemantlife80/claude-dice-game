@@ -1,7 +1,5 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
-import { Volume2, VolumeX } from 'lucide-react';
 
 // --- Minimal Ad Components (No external scripts) ---
 const HeaderAdSpace: React.FC = () => (
@@ -34,7 +32,7 @@ const DiceGame: React.FC = () => {
   const [rolling, setRolling] = useState<boolean>(false);
   const [rollHistory, setRollHistory] = useState<[string, number][]>([]);
   const [winner, setWinner] = useState<number | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled] = useState<boolean>(true);
   const [voiceMessage, setVoiceMessage] = useState<string>('');
   const [flowers, setFlowers] = useState<Array<{id: number; left: number; delay: number; duration: number}>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -265,7 +263,6 @@ const DiceGame: React.FC = () => {
     setRolling(true);
     playSound(800, 0.1);
 
-    const duration = 0.8;
     const startTime = Date.now();
     const result = Math.floor(Math.random() * 6) + 1;
 
@@ -279,11 +276,11 @@ const DiceGame: React.FC = () => {
     };
 
     const targetRotation = rotationMap[result];
-    let rollAnimationId: number;
+    let rollAnimationId: number | null = null;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / (duration * 1000), 1);
+      const progress = Math.min(elapsed / 800, 1);
       const easeProgress = 1 - Math.pow(1 - progress, 3);
 
       if (diceRef.current) {
