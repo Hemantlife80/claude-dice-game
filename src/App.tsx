@@ -3,14 +3,14 @@ import * as THREE from 'three';
 
 // --- Minimal Ad Components (No external scripts) ---
 const HeaderAdSpace: React.FC = () => (
-  <div className="w-full h-20 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-gray-600">
-    [Ad Space - Header]
+  <div className="w-full h-12 bg-gray-200 border-b border-gray-300 flex items-center justify-center text-xs text-gray-600">
+    [Ad Space]
   </div>
 );
 
 const FooterAdSpace: React.FC = () => (
-  <div className="w-full h-24 bg-gray-200 border-t border-gray-300 flex items-center justify-center text-gray-600">
-    [Ad Space - Footer]
+  <div className="w-full h-12 bg-gray-200 border-t border-gray-300 flex items-center justify-center text-xs text-gray-600">
+    [Ad Space]
   </div>
 );
 
