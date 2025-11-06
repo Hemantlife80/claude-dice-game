@@ -276,7 +276,6 @@ const DiceGame: React.FC = () => {
     };
 
     const targetRotation = rotationMap[result];
-    let rollAnimationId: number | null = null;
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -290,7 +289,7 @@ const DiceGame: React.FC = () => {
       }
 
       if (progress < 1) {
-        rollAnimationId = requestAnimationFrame(animate);
+        requestAnimationFrame(animate);
       } else {
         if (diceRef.current) {
           diceRef.current.rotation.x = targetRotation.x;
