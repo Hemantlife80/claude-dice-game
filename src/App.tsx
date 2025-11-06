@@ -34,8 +34,8 @@ const HeaderAdSpace: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full flex justify-center items-center bg-amber-800 py-1 overflow-hidden">
-      <div id={containerId} className="flex justify-center items-center w-full max-w-[728px]"></div>
+    <div className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}>
+      <div id={containerId} className="flex justify-center items-center w-full" style={{ maxHeight: '80px' }}></div>
     </div>
   );
 };
@@ -46,7 +46,6 @@ const FooterAdSpace: React.FC = () => {
 
   useEffect(() => {
     try {
-      // Create container div if it doesn't exist
       let container = document.getElementById(containerId);
       if (!container) {
         container = document.createElement('div');
@@ -57,7 +56,6 @@ const FooterAdSpace: React.FC = () => {
         }
       }
 
-      // Load the native ad script
       const script = document.createElement('script');
       script.async = true;
       script.setAttribute('data-cfasync', 'false');
@@ -73,8 +71,8 @@ const FooterAdSpace: React.FC = () => {
   }, []);
 
   return (
-    <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-800 py-1 overflow-hidden min-h-[50px]">
-      <div id={containerId} className="flex justify-center items-center w-full"></div>
+    <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}>
+      <div id={containerId} className="flex justify-center items-center w-full" style={{ maxHeight: '60px' }}></div>
     </div>
   );
 };
@@ -397,7 +395,7 @@ const DiceGame: React.FC = () => {
             
             if (result === 6) {
               setTimeout(() => {
-                speakMessage(`Congratulations! ${playerNames[currentPlayer]}, you got a six!`);
+                speakMessage(`Congratulations ${playerNames[currentPlayer]} you got a six!`);
               }, 2000);
             }
 
@@ -440,20 +438,20 @@ const DiceGame: React.FC = () => {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
         <HeaderAdSpace />
-        <div className="flex-1 flex items-center justify-center p-4 overflow-auto">
-          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
-            <h1 className="text-4xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
-            <p className="text-center text-gray-600 mb-8">Roll to victory!</p>
+        <div className="flex-1 flex items-center justify-center p-2">
+          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
+            <h1 className="text-3xl font-bold text-center mb-1 text-amber-900">Dice Game</h1>
+            <p className="text-center text-gray-600 mb-6 text-sm">Roll to victory!</p>
             
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Players</label>
-                <div className="flex gap-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-2">Players</label>
+                <div className="flex gap-1">
                   {[1, 2, 3, 4].map(n => (
                     <button
                       key={n}
                       onClick={() => setNumPlayers(n)}
-                      className={`flex-1 py-3 rounded-lg font-semibold transition-all ${
+                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
                         numPlayers === n ? 'bg-amber-700 text-white' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -464,7 +462,7 @@ const DiceGame: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Names</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-2">Names</label>
                 {Array.from({ length: numPlayers }).map((_, i) => (
                   <input
                     key={i}
@@ -476,19 +474,19 @@ const DiceGame: React.FC = () => {
                       newNames[i] = e.target.value || `Player ${i + 1}`;
                       setPlayerNames(newNames);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 focus:outline-none focus:ring-2 focus:ring-amber-700"
+                    className="w-full px-2 py-1 border border-gray-300 rounded-lg mb-1 text-sm focus:outline-none focus:ring-2 focus:ring-amber-700"
                   />
                 ))}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Target</label>
-                <div className="flex gap-2">
+                <label className="block text-xs font-semibold text-gray-700 mb-2">Target</label>
+                <div className="flex gap-1">
                   {[30, 50, 75, 100].map(score => (
                     <button
                       key={score}
                       onClick={() => setTargetScore(score)}
-                      className={`flex-1 py-2 rounded-lg font-semibold text-sm transition-all ${
+                      className={`flex-1 py-1 rounded-lg font-semibold text-xs transition-all ${
                         targetScore === score ? 'bg-amber-700 text-white' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -500,7 +498,7 @@ const DiceGame: React.FC = () => {
 
               <button
                 onClick={startGame}
-                className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
+                className="w-full py-3 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-sm rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
               >
                 Start Game
               </button>
@@ -516,14 +514,14 @@ const DiceGame: React.FC = () => {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
         <HeaderAdSpace />
-        <div className="flex-1 flex items-center justify-center p-6 relative overflow-auto">
+        <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden">
           {flowers.map(flower => (
             <div
               key={flower.id}
-              className="absolute text-4xl"
+              className="absolute text-3xl"
               style={{
                 left: `${flower.left}%`,
-                top: '-50px',
+                top: '-30px',
                 animation: `fall ${flower.duration}s linear ${flower.delay}s forwards`
               }}
             >
@@ -533,12 +531,12 @@ const DiceGame: React.FC = () => {
           <style>{`@keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`}</style>
           
           <div className="text-center">
-            <div className="text-8xl mb-6 animate-bounce">🎉</div>
-            <h1 className="text-5xl font-bold text-white mb-4">{playerNames[winner]} Wins!</h1>
-            <p className="text-2xl text-yellow-100 mb-8">Final Score: {scores[winner]}</p>
+            <div className="text-6xl mb-3 animate-bounce">🎉</div>
+            <h1 className="text-4xl font-bold text-white mb-2">{playerNames[winner]} Wins!</h1>
+            <p className="text-lg text-yellow-100 mb-4">Final Score: {scores[winner]}</p>
             <button
               onClick={resetGame}
-              className="px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
+              className="px-6 py-2 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-sm rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
             >
               Play Again
             </button>
@@ -554,14 +552,14 @@ const DiceGame: React.FC = () => {
     <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
       <HeaderAdSpace />
       
-      <div className="flex-1 flex gap-4 p-4 overflow-auto">
-        <div className="w-52 space-y-3 flex-shrink-0">
-          <div className="bg-white rounded-xl shadow-lg p-3">
-            <h2 className="font-bold text-base text-amber-900 mb-3">Scores</h2>
+      <div className="flex-1 flex gap-2 p-2">
+        <div className="w-48 space-y-2 flex-shrink-0">
+          <div className="bg-white rounded-lg shadow-lg p-2">
+            <h2 className="font-bold text-sm text-amber-900 mb-2">Scores</h2>
             {Array.from({ length: numPlayers }).map((_, i) => (
               <div
                 key={i}
-                className={`p-2 rounded-lg font-semibold mb-2 transition-all text-xs ${
+                className={`p-1 rounded-lg font-semibold text-xs mb-1 transition-all ${
                   currentPlayer === i ? 'bg-amber-600 text-white' : 'bg-gray-100'
                 }`}
               >
@@ -569,39 +567,39 @@ const DiceGame: React.FC = () => {
                 <div className="text-lg">{scores[i]}</div>
               </div>
             ))}
-            <div className="mt-2 pt-2 border-t text-xs text-gray-700">Target: {targetScore}</div>
+            <div className="mt-1 pt-1 border-t text-xs text-gray-700">Target: {targetScore}</div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-3">
-            <h3 className="font-bold text-amber-900 mb-2 text-xs">Recent</h3>
+          <div className="bg-white rounded-lg shadow-lg p-2">
+            <h3 className="font-bold text-amber-900 mb-1 text-xs">Recent</h3>
             {rollHistory.length === 0 ? (
-              <p className="text-gray-500 text-xs text-center py-2">No rolls</p>
+              <p className="text-gray-500 text-xs text-center py-1">No rolls</p>
             ) : (
               rollHistory.map((roll, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-100 p-1 rounded-lg mb-1 text-xs">
+                <div key={i} className="flex justify-between items-center bg-gray-100 p-0.5 rounded-lg mb-0.5 text-xs">
                   <span className="truncate">{roll[0]}</span>
-                  <span className="bg-amber-600 text-white px-2 py-0 rounded font-bold text-xs">{roll[1]}</span>
+                  <span className="bg-amber-600 text-white px-1 py-0 rounded font-bold text-xs">{roll[1]}</span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center gap-2">
-          <div ref={containerRef} className="w-56 h-56 bg-gray-900 rounded-xl shadow-2xl" />
+        <div className="flex-1 flex flex-col items-center justify-center gap-1">
+          <div ref={containerRef} className="w-48 h-48 bg-gray-900 rounded-lg shadow-xl" />
           
-          <p className="text-white text-sm">
+          <p className="text-white text-xs">
             <span className="font-bold text-amber-300">{playerNames[currentPlayer]}</span>'s Turn
           </p>
           
           {voiceMessage && <p className="text-yellow-200 text-xs text-center bg-black bg-opacity-50 p-1 rounded max-w-xs">{voiceMessage}</p>}
           
-          {lastRoll && <div className="text-4xl font-bold text-amber-300 animate-bounce">{lastRoll}</div>}
+          {lastRoll && <div className="text-3xl font-bold text-amber-300 animate-bounce">{lastRoll}</div>}
 
           <button
             onClick={rollDice}
             disabled={rolling}
-            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${
+            className={`px-4 py-1 rounded-lg font-bold text-xs transition-all ${
               rolling
                 ? 'bg-gray-500 cursor-not-allowed text-gray-300'
                 : 'bg-green-600 hover:bg-green-700 text-white'
@@ -612,13 +610,13 @@ const DiceGame: React.FC = () => {
 
           <button
             onClick={resetGame}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-xs"
+            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-xs"
           >
             End Game
           </button>
         </div>
 
-        <div className="w-52 flex-shrink-0" />
+        <div className="w-48 flex-shrink-0" />
       </div>
 
       <FooterAdSpace />
