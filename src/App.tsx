@@ -99,7 +99,6 @@ const DiceGame: React.FC = () => {
   const [winner, setWinner] = useState<number | null>(null);
   const [soundEnabled] = useState<boolean>(true);
   const [voiceMessage, setVoiceMessage] = useState<string>('');
-  const [appError, setAppError] = useState<string | null>(null);
   const [flowers, setFlowers] = useState<Array<{id: number; left: number; delay: number; duration: number}>>([]);
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -189,7 +188,6 @@ const DiceGame: React.FC = () => {
         speakMessage(congratsMessage);
       } catch (e) {
         console.error('Win state error:', e);
-        setAppError('Error in win state');
       }
     }
   }, [gameState, winner, playerNames, speakMessage, playApplauseSound, createFlowers]);
@@ -219,7 +217,7 @@ const DiceGame: React.FC = () => {
 
     const container = containerRef.current;
     if (!container) {
-      setAppError('Container not found');
+      console.error('Container not found');
       return;
     }
 
@@ -335,7 +333,6 @@ const DiceGame: React.FC = () => {
       };
     } catch (error) {
       console.error('Three.js error:', error);
-      setAppError('Three.js initialization failed');
     }
   }, [gameState]);
 
@@ -412,7 +409,6 @@ const DiceGame: React.FC = () => {
       animate();
     } catch (error) {
       console.error('Roll error:', error);
-      setAppError('Error rolling dice');
       setRolling(false);
     }
   };
