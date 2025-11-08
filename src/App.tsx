@@ -1,93 +1,71 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Simpler Ad Loading - No document.write ---
-const loadHeaderAd = () => {
+// --- Simpler Ad Loading - Direct Injection ---
+const loadAds = () => {
   try {
-    const container = document.getElementById('adsterra-banner-header');
-    if (!container) return;
+    console.log('🚀 Loading ads...');
     
-    // Remove any existing iframes/scripts
-    container.innerHTML = '';
-    
-    // Create iframe directly
-    const iframe = document.createElement('iframe');
-    iframe.width = '728';
-    iframe.height = '90';
-    iframe.src = 'about:blank';
-    iframe.frameBorder = '0';
-    iframe.scrolling = 'no';
-    iframe.style.border = 'none';
-    iframe.style.padding = '0';
-    iframe.style.margin = '0';
-    
-    container.appendChild(iframe);
-    
-    // Write to iframe
-    if (iframe.contentDocument) {
-      const doc = iframe.contentDocument;
-      doc.open();
-      doc.write(`
-        <script>
-          atOptions = {
-            'key' : '6fad9591d92e09530553ac6bf74d9820',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-          };
-        </script>
-        <script src="//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js"></script>
-      `);
-      doc.close();
-      console.log('✓ Header ad loaded into iframe');
+    // Load header ad using simple script injection
+    const headerContainer = document.getElementById('adsterra-banner-header');
+    if (headerContainer) {
+      const headerScript = document.createElement('script');
+      headerScript.type = 'text/javascript';
+      headerScript.innerHTML = `
+        atOptions = {
+          'key' : '6fad9591d92e09530553ac6bf74d9820',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      `;
+      headerContainer.appendChild(headerScript);
+      
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
+      invokeScript.async = true;
+      invokeScript.onload = () => console.log('✓ Header ad script loaded');
+      invokeScript.onerror = () => console.error('✗ Header ad script failed');
+      headerContainer.appendChild(invokeScript);
+      console.log('✓ Header ad injected');
     }
-  } catch (e) {
-    console.error('Header ad error:', e);
-  }
-};
-
-const loadFooterAd = () => {
-  try {
-    const wrapper = document.getElementById('footer-ad-wrapper');
-    if (!wrapper) return;
     
-    // Remove any existing scripts
-    const existing = wrapper.querySelector('script');
-    if (existing) existing.remove();
-    
-    // Create container div
-    let container = wrapper.querySelector('#container-5b5e30a41ac609068bc85f8481dde86b');
-    if (!container) {
-      container = document.createElement('div');
+    // Load footer ad - simpler approach
+    const footerWrapper = document.getElementById('footer-ad-wrapper');
+    if (footerWrapper && !footerWrapper.querySelector('script[src*="effectivegatecpm"]')) {
+      // Create container for native ad
+      const container = document.createElement('div');
       container.id = 'container-5b5e30a41ac609068bc85f8481dde86b';
-      wrapper.appendChild(container);
+      footerWrapper.appendChild(container);
+      
+      // Add the footer ad script
+      const footerScript = document.createElement('script');
+      footerScript.async = true;
+      footerScript.setAttribute('data-cfasync', 'false');
+      footerScript.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
+      footerScript.onload = () => console.log('✓ Footer ad script loaded');
+      footerScript.onerror = () => console.error('✗ Footer ad script failed to load');
+      footerWrapper.appendChild(footerScript);
+      console.log('✓ Footer ad injected');
     }
-    
-    // Create and append script
-    const script = document.createElement('script');
-    script.async = true;
-    script.setAttribute('data-cfasync', 'false');
-    script.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
-    script.onload = () => console.log('✓ Footer ad script loaded');
-    script.onerror = () => console.error('✗ Footer ad script failed');
-    
-    wrapper.appendChild(script);
-    console.log('✓ Footer ad initialized');
   } catch (e) {
-    console.error('Footer ad error:', e);
+    console.error('Ad loading error:', e);
   }
 };
 
-// Initialize on app load
+// Load ads when window is fully loaded
 if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    console.log('🚀 Window loaded - initializing ads');
-    setTimeout(() => {
-      loadHeaderAd();
-      loadFooterAd();
-    }, 500);
-  });
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOMContentLoaded - initializing ads');
+      setTimeout(loadAds, 300);
+    });
+  } else {
+    console.log('Document already loaded - initializing ads immediately');
+    setTimeout(loadAds, 300);
+  }
 }
 
 // --- Main DiceGame Component ---
