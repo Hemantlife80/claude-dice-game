@@ -1,57 +1,93 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// Initialize ads at app level - NOT inside components
-const initializeHeaderAd = () => {
+// --- Simpler Ad Loading - No document.write ---
+const loadHeaderAd = () => {
   try {
     const container = document.getElementById('adsterra-banner-header');
-    if (!container || container.querySelector('script')) return; // Already has script
+    if (!container) return;
     
-    (window as any).atOptions = {
-      'key': '6fad9591d92e09530553ac6bf74d9820',
-      'format': 'iframe',
-      'height': 90,
-      'width': 728,
-      'params': {}
-    };
-
-    const script = document.createElement('script');
-    script.type = 'text/javascript';
-    script.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
-    script.async = true;
-    container.appendChild(script);
-    console.log('✓ Header ad loaded');
+    // Remove any existing iframes/scripts
+    container.innerHTML = '';
+    
+    // Create iframe directly
+    const iframe = document.createElement('iframe');
+    iframe.width = '728';
+    iframe.height = '90';
+    iframe.src = 'about:blank';
+    iframe.frameBorder = '0';
+    iframe.scrolling = 'no';
+    iframe.style.border = 'none';
+    iframe.style.padding = '0';
+    iframe.style.margin = '0';
+    
+    container.appendChild(iframe);
+    
+    // Write to iframe
+    if (iframe.contentDocument) {
+      const doc = iframe.contentDocument;
+      doc.open();
+      doc.write(`
+        <script>
+          atOptions = {
+            'key' : '6fad9591d92e09530553ac6bf74d9820',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script src="//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js"></script>
+      `);
+      doc.close();
+      console.log('✓ Header ad loaded into iframe');
+    }
   } catch (e) {
     console.error('Header ad error:', e);
   }
 };
 
-const initializeFooterAd = () => {
+const loadFooterAd = () => {
   try {
     const wrapper = document.getElementById('footer-ad-wrapper');
-    if (!wrapper || wrapper.querySelector('script')) return; // Already has script
+    if (!wrapper) return;
     
-    const container = document.createElement('div');
-    container.id = 'container-5b5e30a41ac609068bc85f8481dde86b';
-    wrapper.appendChild(container);
-
+    // Remove any existing scripts
+    const existing = wrapper.querySelector('script');
+    if (existing) existing.remove();
+    
+    // Create container div
+    let container = wrapper.querySelector('#container-5b5e30a41ac609068bc85f8481dde86b');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'container-5b5e30a41ac609068bc85f8481dde86b';
+      wrapper.appendChild(container);
+    }
+    
+    // Create and append script
     const script = document.createElement('script');
     script.async = true;
     script.setAttribute('data-cfasync', 'false');
     script.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
+    script.onload = () => console.log('✓ Footer ad script loaded');
+    script.onerror = () => console.error('✗ Footer ad script failed');
+    
     wrapper.appendChild(script);
-    console.log('✓ Footer ad loaded');
+    console.log('✓ Footer ad initialized');
   } catch (e) {
     console.error('Footer ad error:', e);
   }
 };
 
-// Load ads immediately on app start
+// Initialize on app load
 if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    initializeHeaderAd();
-    initializeFooterAd();
-  }, 100);
+  window.addEventListener('load', () => {
+    console.log('🚀 Window loaded - initializing ads');
+    setTimeout(() => {
+      loadHeaderAd();
+      loadFooterAd();
+    }, 500);
+  });
 }
 
 // --- Main DiceGame Component ---
@@ -167,7 +203,6 @@ const DiceGame: React.FC = () => {
     }
   }, [gameState, winner, playerNames, speakMessage, playApplauseSound, createFlowers]);
 
-  // Three.js setup
   useEffect(() => {
     if (gameState !== 'playing') {
       if (animationIdRef.current) {
@@ -515,7 +550,6 @@ const DiceGame: React.FC = () => {
     );
   }
 
-  // Playing state
   return (
     <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
       <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
