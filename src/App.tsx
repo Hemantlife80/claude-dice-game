@@ -1,101 +1,58 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Banner Ad Component (728x90) ---
-const HeaderAdSpace: React.FC = () => {
-  const containerId = 'adsterra-banner-header';
-  const hasLoadedRef = useRef(false);
+// Initialize ads at app level - NOT inside components
+const initializeHeaderAd = () => {
+  try {
+    const container = document.getElementById('adsterra-banner-header');
+    if (!container || container.querySelector('script')) return; // Already has script
+    
+    (window as any).atOptions = {
+      'key': '6fad9591d92e09530553ac6bf74d9820',
+      'format': 'iframe',
+      'height': 90,
+      'width': 728,
+      'params': {}
+    };
 
-  useEffect(() => {
-    // Only load once, never reload
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
-
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    try {
-      console.log('Loading header ad...');
-      
-      // Set atOptions globally
-      (window as any).atOptions = {
-        'key': '6fad9591d92e09530553ac6bf74d9820',
-        'format': 'iframe',
-        'height': 90,
-        'width': 728,
-        'params': {}
-      };
-
-      // Create and append the invoke script - only once
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
-      script.async = true;
-      script.onload = () => console.log('✓ Header ad script loaded');
-      script.onerror = () => console.error('✗ Header ad script failed');
-      container.appendChild(script);
-      console.log('✓ Header ad initialized');
-    } catch (e) {
-      console.error('Header ad error:', e);
-    }
-  }, []); // Empty dependency array - run ONLY ONCE
-
-  return (
-    <div className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}>
-      <div id={containerId} className="flex justify-center items-center w-full" style={{ maxHeight: '80px' }}></div>
-    </div>
-  );
+    const script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
+    script.async = true;
+    container.appendChild(script);
+    console.log('✓ Header ad loaded');
+  } catch (e) {
+    console.error('Header ad error:', e);
+  }
 };
 
-// --- Native Banner Ad Component ---
-const FooterAdSpace: React.FC = () => {
-  const containerId = 'container-5b5e30a41ac609068bc85f8481dde86b';
-  const hasLoadedRef = useRef(false);
+const initializeFooterAd = () => {
+  try {
+    const wrapper = document.getElementById('footer-ad-wrapper');
+    if (!wrapper || wrapper.querySelector('script')) return; // Already has script
+    
+    const container = document.createElement('div');
+    container.id = 'container-5b5e30a41ac609068bc85f8481dde86b';
+    wrapper.appendChild(container);
 
-  useEffect(() => {
-    // Only load once, never reload
-    if (hasLoadedRef.current) return;
-    hasLoadedRef.current = true;
-
-    try {
-      console.log('Loading footer ad...');
-      
-      // Create container div if it doesn't exist
-      let container = document.getElementById(containerId);
-      if (!container) {
-        container = document.createElement('div');
-        container.id = containerId;
-        const footerDiv = document.querySelector('#footer-ad-wrapper');
-        if (footerDiv) {
-          footerDiv.appendChild(container);
-        }
-      }
-
-      // Load the native ad script - only once
-      const script = document.createElement('script');
-      script.async = true;
-      script.setAttribute('data-cfasync', 'false');
-      script.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
-      script.onload = () => console.log('✓ Footer ad script loaded');
-      script.onerror = () => console.error('✗ Footer ad script failed');
-      
-      const footerWrapper = document.querySelector('#footer-ad-wrapper');
-      if (footerWrapper) {
-        footerWrapper.appendChild(script);
-        console.log('✓ Footer ad initialized');
-      }
-    } catch (e) {
-      console.error('Footer ad error:', e);
-    }
-  }, []); // Empty dependency array - run ONLY ONCE
-
-  return (
-    <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}>
-      <div id={containerId} className="flex justify-center items-center w-full" style={{ maxHeight: '60px' }}></div>
-    </div>
-  );
+    const script = document.createElement('script');
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    script.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
+    wrapper.appendChild(script);
+    console.log('✓ Footer ad loaded');
+  } catch (e) {
+    console.error('Footer ad error:', e);
+  }
 };
+
+// Load ads immediately on app start
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    initializeHeaderAd();
+    initializeFooterAd();
+  }, 100);
+}
 
 // --- Main DiceGame Component ---
 const DiceGame: React.FC = () => {
@@ -213,7 +170,6 @@ const DiceGame: React.FC = () => {
   // Three.js setup
   useEffect(() => {
     if (gameState !== 'playing') {
-      // Cleanup when leaving playing state
       if (animationIdRef.current) {
         cancelAnimationFrame(animationIdRef.current);
         animationIdRef.current = null;
@@ -240,7 +196,6 @@ const DiceGame: React.FC = () => {
     }
 
     try {
-      // Only initialize if not already done
       if (rendererRef.current) return;
 
       const width = container.clientWidth;
@@ -251,16 +206,13 @@ const DiceGame: React.FC = () => {
         return;
       }
 
-      // Create scene
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x2a2a2a);
       sceneRef.current = scene;
 
-      // Create camera
       const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
       camera.position.z = 2.5;
 
-      // Create renderer
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -268,7 +220,6 @@ const DiceGame: React.FC = () => {
 
       container.appendChild(renderer.domElement);
 
-      // Lighting
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
       scene.add(ambientLight);
 
@@ -276,7 +227,6 @@ const DiceGame: React.FC = () => {
       directionalLight.position.set(5, 5, 5);
       scene.add(directionalLight);
 
-      // Create dice
       const createDiceFace = (number: number): THREE.CanvasTexture => {
         const canvas = document.createElement('canvas');
         canvas.width = 128;
@@ -324,7 +274,6 @@ const DiceGame: React.FC = () => {
       scene.add(dice);
       diceRef.current = dice;
 
-      // Animation loop
       const animate = () => {
         animationIdRef.current = requestAnimationFrame(animate);
         if (rendererRef.current) {
@@ -333,7 +282,6 @@ const DiceGame: React.FC = () => {
       };
       animate();
 
-      // Handle resize
       const handleResize = () => {
         const newWidth = container?.clientWidth || 0;
         const newHeight = container?.clientHeight || 0;
@@ -457,7 +405,7 @@ const DiceGame: React.FC = () => {
   if (gameState === 'setup') {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-        <HeaderAdSpace />
+        <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
         <div className="flex-1 flex items-center justify-center p-2">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
             <h1 className="text-3xl font-bold text-center mb-1 text-amber-900">Dice Game</h1>
@@ -525,7 +473,7 @@ const DiceGame: React.FC = () => {
             </div>
           </div>
         </div>
-        <FooterAdSpace />
+        <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
       </div>
     );
   }
@@ -533,7 +481,7 @@ const DiceGame: React.FC = () => {
   if (gameState === 'won' && winner !== null) {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-        <HeaderAdSpace />
+        <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
         <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden">
           {flowers.map(flower => (
             <div
@@ -562,7 +510,7 @@ const DiceGame: React.FC = () => {
             </button>
           </div>
         </div>
-        <FooterAdSpace />
+        <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
       </div>
     );
   }
@@ -570,7 +518,7 @@ const DiceGame: React.FC = () => {
   // Playing state
   return (
     <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-      <HeaderAdSpace />
+      <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
       
       <div className="flex-1 flex gap-2 p-2">
         <div className="w-48 space-y-2 flex-shrink-0">
@@ -639,7 +587,7 @@ const DiceGame: React.FC = () => {
         <div className="w-48 flex-shrink-0" />
       </div>
 
-      <FooterAdSpace />
+      <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
     </div>
   );
 };
