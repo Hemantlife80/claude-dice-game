@@ -6,13 +6,19 @@ const MonetagAdLoader: React.FC = () => {
   useEffect(() => {
     try {
       console.log('🚀 Monetag Ad Loader Starting...');
+      console.log('Current URL:', window.location.href);
+      console.log('Document ready state:', document.readyState);
       
       // Multitag Code - Part 1: Service Worker
       const z_url = new URL(location.protocol + '//' + location.host);
+      console.log('z_url created:', z_url.toString());
+      
       const z_s1 = document.createElement('script');
       z_s1.src = z_url.protocol + '//' + z_url.host + '/p/sw.js';
+      z_s1.onload = () => console.log('✓ Service worker script loaded');
+      z_s1.onerror = () => console.log('⚠️ Service worker script failed (may be expected)');
       (document.head || document.body).appendChild(z_s1);
-      console.log('✓ Monetag service worker injected');
+      console.log('✓ Monetag service worker script injected:', z_s1.src);
       
       // Multitag Code - Part 2: Ad key
       (window as any).z_key = '94132dd4511d3103233c39379e782631';
@@ -22,12 +28,36 @@ const MonetagAdLoader: React.FC = () => {
       const z_s2 = document.createElement('script');
       z_s2.async = true;
       z_s2.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
-      z_s2.onload = () => console.log('✓✓✓ MONETAG AD SCRIPT LOADED SUCCESSFULLY ✓✓✓');
-      z_s2.onerror = () => console.error('✗ Monetag ad script failed to load');
+      z_s2.onload = () => console.log('✓✓✓ MONETAG MAIN TAG LOADED SUCCESSFULLY ✓✓✓');
+      z_s2.onerror = (err) => console.error('✗ Monetag main tag failed:', err);
+      z_s2.onreadystatechange = () => {
+        console.log('Monetag script readyState:', z_s2.readyState);
+      };
       document.head.appendChild(z_s2);
-      console.log('✓ Monetag main tag injected');
+      console.log('✓ Monetag main tag injected:', z_s2.src);
+      
+      // Check if window objects are set
+      console.log('Window z_key exists:', (window as any).z_key ? 'YES' : 'NO');
+      console.log('Window.ads exists:', (window as any).ads ? 'YES' : 'NO');
+      
+      // Log after a delay to see if ads loaded
+      setTimeout(() => {
+        console.log('=== Monetag Status Check (1 second later) ===');
+        console.log('Window z_key:', (window as any).z_key);
+        console.log('Window.ads:', (window as any).ads);
+        console.log('Scripts in head:', document.head.querySelectorAll('script').length);
+        const monetagScripts = Array.from(document.head.querySelectorAll('script')).filter(s => 
+          s.src.includes('5gvci') || s.src.includes('monetag')
+        );
+        console.log('Monetag scripts found:', monetagScripts.length);
+        monetagScripts.forEach((s, i) => {
+          console.log(`  Script ${i}:`, (s as HTMLScriptElement).src, 'Status:', (s as HTMLScriptElement).readyState);
+        });
+      }, 1000);
+      
     } catch (e) {
       console.error('❌ Monetag Ad Loader Error:', e);
+      console.error('Error stack:', (e as Error).stack);
     }
   }, []); // Empty dependency array - runs ONLY ONCE on component mount
 
