@@ -1,72 +1,38 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Simpler Ad Loading - Direct Injection ---
-const loadAds = () => {
-  try {
-    console.log('🚀 Loading ads...');
-    
-    // Load header ad using simple script injection
-    const headerContainer = document.getElementById('adsterra-banner-header');
-    if (headerContainer) {
-      const headerScript = document.createElement('script');
-      headerScript.type = 'text/javascript';
-      headerScript.innerHTML = `
-        atOptions = {
-          'key' : '6fad9591d92e09530553ac6bf74d9820',
-          'format' : 'iframe',
-          'height' : 90,
-          'width' : 728,
-          'params' : {}
-        };
-      `;
-      headerContainer.appendChild(headerScript);
+// --- Monetag Ad Loader Component - Loads ONCE at app startup ---
+const MonetagAdLoader: React.FC = () => {
+  useEffect(() => {
+    try {
+      console.log('🚀 Monetag Ad Loader Starting...');
       
-      const invokeScript = document.createElement('script');
-      invokeScript.type = 'text/javascript';
-      invokeScript.src = '//www.highperformanceformat.com/6fad9591d92e09530553ac6bf74d9820/invoke.js';
-      invokeScript.async = true;
-      invokeScript.onload = () => console.log('✓ Header ad script loaded');
-      invokeScript.onerror = () => console.error('✗ Header ad script failed');
-      headerContainer.appendChild(invokeScript);
-      console.log('✓ Header ad injected');
-    }
-    
-    // Load footer ad - simpler approach
-    const footerWrapper = document.getElementById('footer-ad-wrapper');
-    if (footerWrapper && !footerWrapper.querySelector('script[src*="effectivegatecpm"]')) {
-      // Create container for native ad
-      const container = document.createElement('div');
-      container.id = 'container-5b5e30a41ac609068bc85f8481dde86b';
-      footerWrapper.appendChild(container);
+      // Multitag Code - Part 1: Service Worker
+      const z_url = new URL(location.protocol + '//' + location.host);
+      const z_s1 = document.createElement('script');
+      z_s1.src = z_url.protocol + '//' + z_url.host + '/p/sw.js';
+      (document.head || document.body).appendChild(z_s1);
+      console.log('✓ Monetag service worker injected');
       
-      // Add the footer ad script
-      const footerScript = document.createElement('script');
-      footerScript.async = true;
-      footerScript.setAttribute('data-cfasync', 'false');
-      footerScript.src = '//pl27998959.effectivegatecpm.com/5b5e30a41ac609068bc85f8481dde86b/invoke.js';
-      footerScript.onload = () => console.log('✓ Footer ad script loaded');
-      footerScript.onerror = () => console.error('✗ Footer ad script failed to load');
-      footerWrapper.appendChild(footerScript);
-      console.log('✓ Footer ad injected');
+      // Multitag Code - Part 2: Ad key
+      (window as any).z_key = '94132dd4511d3103233c39379e782631';
+      console.log('✓ Monetag z_key set:', (window as any).z_key);
+      
+      // Main Monetag tag
+      const z_s2 = document.createElement('script');
+      z_s2.async = true;
+      z_s2.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
+      z_s2.onload = () => console.log('✓✓✓ MONETAG AD SCRIPT LOADED SUCCESSFULLY ✓✓✓');
+      z_s2.onerror = () => console.error('✗ Monetag ad script failed to load');
+      document.head.appendChild(z_s2);
+      console.log('✓ Monetag main tag injected');
+    } catch (e) {
+      console.error('❌ Monetag Ad Loader Error:', e);
     }
-  } catch (e) {
-    console.error('Ad loading error:', e);
-  }
-};
+  }, []); // Empty dependency array - runs ONLY ONCE on component mount
 
-// Load ads when window is fully loaded
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      console.log('DOMContentLoaded - initializing ads');
-      setTimeout(loadAds, 300);
-    });
-  } else {
-    console.log('Document already loaded - initializing ads immediately');
-    setTimeout(loadAds, 300);
-  }
-}
+  return null; // This component doesn't render anything
+};
 
 // --- Main DiceGame Component ---
 const DiceGame: React.FC = () => {
@@ -418,7 +384,7 @@ const DiceGame: React.FC = () => {
   if (gameState === 'setup') {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-        <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
+        <MonetagAdLoader />
         <div className="flex-1 flex items-center justify-center p-2">
           <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-md w-full">
             <h1 className="text-3xl font-bold text-center mb-1 text-amber-900">Dice Game</h1>
@@ -486,7 +452,6 @@ const DiceGame: React.FC = () => {
             </div>
           </div>
         </div>
-        <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
       </div>
     );
   }
@@ -494,7 +459,7 @@ const DiceGame: React.FC = () => {
   if (gameState === 'won' && winner !== null) {
     return (
       <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-        <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
+        <MonetagAdLoader />
         <div className="flex-1 flex items-center justify-center p-2 relative overflow-hidden">
           {flowers.map(flower => (
             <div
@@ -523,14 +488,13 @@ const DiceGame: React.FC = () => {
             </button>
           </div>
         </div>
-        <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
       </div>
     );
   }
 
   return (
     <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
-      <div id="adsterra-banner-header" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '80px' }}></div>
+      <MonetagAdLoader />
       
       <div className="flex-1 flex gap-2 p-2">
         <div className="w-48 space-y-2 flex-shrink-0">
@@ -598,8 +562,6 @@ const DiceGame: React.FC = () => {
 
         <div className="w-48 flex-shrink-0" />
       </div>
-
-      <div id="footer-ad-wrapper" className="w-full flex justify-center items-center bg-amber-900 overflow-hidden" style={{ height: '60px' }}></div>
     </div>
   );
 };
