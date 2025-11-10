@@ -30,9 +30,6 @@ const MonetagAdLoader: React.FC = () => {
       z_s2.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
       z_s2.onload = () => console.log('✓✓✓ MONETAG MAIN TAG LOADED SUCCESSFULLY ✓✓✓');
       z_s2.onerror = (err) => console.error('✗ Monetag main tag failed:', err);
-      z_s2.onreadystatechange = () => {
-        console.log('Monetag script readyState:', z_s2.readyState);
-      };
       document.head.appendChild(z_s2);
       console.log('✓ Monetag main tag injected:', z_s2.src);
       
@@ -51,7 +48,7 @@ const MonetagAdLoader: React.FC = () => {
         );
         console.log('Monetag scripts found:', monetagScripts.length);
         monetagScripts.forEach((s, i) => {
-          console.log(`  Script ${i}:`, (s as HTMLScriptElement).src, 'Status:', (s as HTMLScriptElement).readyState);
+          console.log(`  Script ${i}:`, s.src);
         });
       }, 1000);
       
