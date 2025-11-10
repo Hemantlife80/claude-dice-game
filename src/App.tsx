@@ -1,54 +1,55 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Monetag Ad Loader Component - Loads ONCE at app startup ---
+// --- Alternative Ad Loader Component - Loads ONCE at app startup ---
 const MonetagAdLoader: React.FC = () => {
   useEffect(() => {
     try {
-      console.log('🚀 Monetag Ad Loader Starting...');
-      console.log('Current URL:', window.location.href);
+      console.log('🚀 Alternative Ad Loader Starting...');
       
-      // Set Monetag z_key FIRST
-      (window as any).z_key = '94132dd4511d3103233c39379e782631';
-      console.log('✓ Monetag z_key set:', (window as any).z_key);
+      // First Ad Code: fpyf8.com
+      const adScript1 = document.createElement('script');
+      adScript1.src = 'https://fpyf8.com/88/tag.min.js';
+      adScript1.async = true;
+      adScript1.setAttribute('data-zone', '184204');
+      adScript1.setAttribute('data-cfasync', 'false');
+      adScript1.onload = () => console.log('✓ First ad script loaded (fpyf8)');
+      adScript1.onerror = () => console.error('✗ First ad script failed');
+      document.head.appendChild(adScript1);
+      console.log('✓ First ad script injected (fpyf8.com)');
       
-      // Load main Monetag tag script
-      const monetagScript = document.createElement('script');
-      monetagScript.async = true;
-      monetagScript.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
-      monetagScript.onload = () => {
-        console.log('✓✓✓ MONETAG MAIN TAG LOADED SUCCESSFULLY ✓✓✓');
-        console.log('Window.ads exists:', (window as any).ads ? 'YES' : 'NO');
-      };
-      monetagScript.onerror = (err) => {
-        console.error('✗ Monetag main tag failed:', err);
-      };
-      document.head.appendChild(monetagScript);
-      console.log('✓ Monetag main tag injected');
+      // Second Ad Code: forfrogadiertor.com
+      const adScript2 = document.createElement('script');
+      adScript2.async = true;
+      adScript2.setAttribute('data-cfasync', 'false');
+      adScript2.textContent = `
+        (function(s){
+          s.dataset.zone='10167497';
+          s.src='https://forfrogadiertor.com/tag.min.js';
+        })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+      `;
+      document.head.appendChild(adScript2);
+      console.log('✓ Second ad script injected (forfrogadiertor.com)');
       
-      // Check status after delay
+      // Status check
       setTimeout(() => {
-        console.log('=== Monetag Status Check (2 seconds later) ===');
-        console.log('Window z_key:', (window as any).z_key);
-        console.log('Window.ads:', (window as any).ads);
-        console.log('Window.__monetag__:', (window as any).__monetag__);
-        
-        // Check if any ad containers exist
-        const adContainers = document.querySelectorAll('[data-monetag], [id*="monetag"], [class*="monetag"]');
-        console.log('Ad containers found:', adContainers.length);
-        
-        // Check all scripts
-        const scripts = Array.from(document.head.querySelectorAll('script'));
-        const monetagScripts = scripts.filter(s => s.src.includes('5gvci') || s.src.includes('monetag'));
-        console.log('Total scripts in head:', scripts.length);
-        console.log('Monetag scripts found:', monetagScripts.length);
-        monetagScripts.forEach((s, i) => {
-          console.log(`  Monetag Script ${i}:`, s.src);
+        console.log('=== Ad Status Check (2 seconds later) ===');
+        console.log('Scripts in head:', document.head.querySelectorAll('script').length);
+        const allScripts = Array.from(document.head.querySelectorAll('script'));
+        const adScripts = allScripts.filter(s => 
+          s.src.includes('fpyf8') || 
+          s.src.includes('forfrogadiertor') || 
+          s.src.includes('5gvci') ||
+          s.textContent.includes('forfrogadiertor')
+        );
+        console.log('Ad scripts found:', adScripts.length);
+        adScripts.forEach((s, i) => {
+          console.log(`  Ad Script ${i}:`, s.src || 'inline script');
         });
       }, 2000);
       
     } catch (e) {
-      console.error('❌ Monetag Ad Loader Error:', e);
+      console.error('❌ Ad Loader Error:', e);
     }
   }, []);
 
