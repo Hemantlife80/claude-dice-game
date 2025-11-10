@@ -1,51 +1,42 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 
-// --- Alternative Ad Loader Component - Loads ONCE at app startup ---
+// --- Monetag Ad Loader Component - Loads ONCE at app startup ---
 const MonetagAdLoader: React.FC = () => {
   useEffect(() => {
     try {
-      console.log('🚀 Alternative Ad Loader Starting...');
+      console.log('🚀 Monetag Ad Loader Starting...');
       
-      // First Ad Code: fpyf8.com
+      // Ad 1: forfrogadiertor.com - Zone 10169330
       const adScript1 = document.createElement('script');
-      adScript1.src = 'https://fpyf8.com/88/tag.min.js';
       adScript1.async = true;
-      adScript1.setAttribute('data-zone', '184204');
       adScript1.setAttribute('data-cfasync', 'false');
-      adScript1.onload = () => console.log('✓ First ad script loaded (fpyf8)');
-      adScript1.onerror = () => console.error('✗ First ad script failed');
+      adScript1.textContent = `
+        (function(s){
+          s.dataset.zone='10169330';
+          s.src='https://forfrogadiertor.com/tag.min.js';
+        })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
+      `;
       document.head.appendChild(adScript1);
-      console.log('✓ First ad script injected (fpyf8.com)');
+      console.log('✓ Ad 1 injected (forfrogadiertor - Zone 10169330)');
       
-      // Second Ad Code: forfrogadiertor.com
+      // Ad 2: gizokraijaw.net - Zone 10169341
       const adScript2 = document.createElement('script');
       adScript2.async = true;
       adScript2.setAttribute('data-cfasync', 'false');
       adScript2.textContent = `
         (function(s){
-          s.dataset.zone='10167497';
-          s.src='https://forfrogadiertor.com/tag.min.js';
+          s.dataset.zone='10169341';
+          s.src='https://gizokraijaw.net/vignette.min.js';
         })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
       `;
       document.head.appendChild(adScript2);
-      console.log('✓ Second ad script injected (forfrogadiertor.com)');
+      console.log('✓ Ad 2 injected (gizokraijaw - Zone 10169341)');
       
       // Status check
       setTimeout(() => {
         console.log('=== Ad Status Check (2 seconds later) ===');
-        console.log('Scripts in head:', document.head.querySelectorAll('script').length);
-        const allScripts = Array.from(document.head.querySelectorAll('script'));
-        const adScripts = allScripts.filter(s => 
-          s.src.includes('fpyf8') || 
-          s.src.includes('forfrogadiertor') || 
-          s.src.includes('5gvci') ||
-          s.textContent.includes('forfrogadiertor')
-        );
-        console.log('Ad scripts found:', adScripts.length);
-        adScripts.forEach((s, i) => {
-          console.log(`  Ad Script ${i}:`, s.src || 'inline script');
-        });
+        console.log('Monetag ads loaded');
       }, 2000);
       
     } catch (e) {
