@@ -7,58 +7,52 @@ const MonetagAdLoader: React.FC = () => {
     try {
       console.log('🚀 Monetag Ad Loader Starting...');
       console.log('Current URL:', window.location.href);
-      console.log('Document ready state:', document.readyState);
       
-      // Multitag Code - Part 1: Service Worker
-      const z_url = new URL(location.protocol + '//' + location.host);
-      console.log('z_url created:', z_url.toString());
-      
-      const z_s1 = document.createElement('script');
-      z_s1.src = z_url.protocol + '//' + z_url.host + '/p/sw.js';
-      z_s1.onload = () => console.log('✓ Service worker script loaded');
-      z_s1.onerror = () => console.log('⚠️ Service worker script failed (may be expected)');
-      (document.head || document.body).appendChild(z_s1);
-      console.log('✓ Monetag service worker script injected:', z_s1.src);
-      
-      // Multitag Code - Part 2: Ad key
+      // Set Monetag z_key FIRST
       (window as any).z_key = '94132dd4511d3103233c39379e782631';
       console.log('✓ Monetag z_key set:', (window as any).z_key);
       
-      // Main Monetag tag
-      const z_s2 = document.createElement('script');
-      z_s2.async = true;
-      z_s2.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
-      z_s2.onload = () => console.log('✓✓✓ MONETAG MAIN TAG LOADED SUCCESSFULLY ✓✓✓');
-      z_s2.onerror = (err) => console.error('✗ Monetag main tag failed:', err);
-      document.head.appendChild(z_s2);
-      console.log('✓ Monetag main tag injected:', z_s2.src);
+      // Load main Monetag tag script
+      const monetagScript = document.createElement('script');
+      monetagScript.async = true;
+      monetagScript.src = 'https://5gvci.com/pfe/current/tag.min.js?z=10167497';
+      monetagScript.onload = () => {
+        console.log('✓✓✓ MONETAG MAIN TAG LOADED SUCCESSFULLY ✓✓✓');
+        console.log('Window.ads exists:', (window as any).ads ? 'YES' : 'NO');
+      };
+      monetagScript.onerror = (err) => {
+        console.error('✗ Monetag main tag failed:', err);
+      };
+      document.head.appendChild(monetagScript);
+      console.log('✓ Monetag main tag injected');
       
-      // Check if window objects are set
-      console.log('Window z_key exists:', (window as any).z_key ? 'YES' : 'NO');
-      console.log('Window.ads exists:', (window as any).ads ? 'YES' : 'NO');
-      
-      // Log after a delay to see if ads loaded
+      // Check status after delay
       setTimeout(() => {
-        console.log('=== Monetag Status Check (1 second later) ===');
+        console.log('=== Monetag Status Check (2 seconds later) ===');
         console.log('Window z_key:', (window as any).z_key);
         console.log('Window.ads:', (window as any).ads);
-        console.log('Scripts in head:', document.head.querySelectorAll('script').length);
-        const monetagScripts = Array.from(document.head.querySelectorAll('script')).filter(s => 
-          s.src.includes('5gvci') || s.src.includes('monetag')
-        );
+        console.log('Window.__monetag__:', (window as any).__monetag__);
+        
+        // Check if any ad containers exist
+        const adContainers = document.querySelectorAll('[data-monetag], [id*="monetag"], [class*="monetag"]');
+        console.log('Ad containers found:', adContainers.length);
+        
+        // Check all scripts
+        const scripts = Array.from(document.head.querySelectorAll('script'));
+        const monetagScripts = scripts.filter(s => s.src.includes('5gvci') || s.src.includes('monetag'));
+        console.log('Total scripts in head:', scripts.length);
         console.log('Monetag scripts found:', monetagScripts.length);
         monetagScripts.forEach((s, i) => {
-          console.log(`  Script ${i}:`, s.src);
+          console.log(`  Monetag Script ${i}:`, s.src);
         });
-      }, 1000);
+      }, 2000);
       
     } catch (e) {
       console.error('❌ Monetag Ad Loader Error:', e);
-      console.error('Error stack:', (e as Error).stack);
     }
-  }, []); // Empty dependency array - runs ONLY ONCE on component mount
+  }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 };
 
 // --- Main DiceGame Component ---
