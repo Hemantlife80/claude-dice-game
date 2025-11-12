@@ -7,7 +7,7 @@ const MonetagAdLoader: React.FC = () => {
     try {
       console.log('🚀 Monetag Ad Loader Starting...');
       
-      // Ad 1: forfrogadiertor.com - Zone 10169330
+      // Ad 1: forfrogadiertor.com - Zone 10169330 (In-Page Ad)
       const adScript1 = document.createElement('script');
       adScript1.async = true;
       adScript1.setAttribute('data-cfasync', 'false');
@@ -17,10 +17,10 @@ const MonetagAdLoader: React.FC = () => {
           s.src='https://forfrogadiertor.com/tag.min.js';
         })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
       `;
-      document.head.appendChild(adScript1);
-      console.log('✓ Ad 1 injected (forfrogadiertor - Zone 10169330)');
+      document.body.appendChild(adScript1);
+      console.log('✓ Ad 1 injected (Zone 10169330)');
       
-      // Ad 2: gizokraijaw.net - Zone 10169341
+      // Ad 2: gizokraijaw.net - Zone 10169341 (Vignette Banner - Corner)
       const adScript2 = document.createElement('script');
       adScript2.async = true;
       adScript2.setAttribute('data-cfasync', 'false');
@@ -30,10 +30,10 @@ const MonetagAdLoader: React.FC = () => {
           s.src='https://gizokraijaw.net/vignette.min.js';
         })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
       `;
-      document.head.appendChild(adScript2);
-      console.log('✓ Ad 2 injected (gizokraijaw - Zone 10169341)');
+      document.body.appendChild(adScript2);
+      console.log('✓ Ad 2 injected (Zone 10169341)');
       
-      // Ad 3: forfrogadiertor.com - Zone 10173610
+      // Ad 3: forfrogadiertor.com - Zone 10173610 (Banner Ad)
       const adScript3 = document.createElement('script');
       adScript3.async = true;
       adScript3.setAttribute('data-cfasync', 'false');
@@ -43,8 +43,8 @@ const MonetagAdLoader: React.FC = () => {
           s.src='https://forfrogadiertor.com/tag.min.js';
         })([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))
       `;
-      document.head.appendChild(adScript3);
-      console.log('✓ Ad 3 injected (forfrogadiertor - Zone 10173610)');
+      document.body.appendChild(adScript3);
+      console.log('✓ Ad 3 injected (Zone 10173610)');
       
       setTimeout(() => {
         console.log('=== Ad Status Check (2 seconds later) ===');
@@ -408,22 +408,22 @@ const DiceGame: React.FC = () => {
   // Render functions
   if (gameState === 'setup') {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+      <div className="w-full min-h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col p-2 sm:p-4">
         <MonetagAdLoader />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl p-10 max-w-2xl w-full">
-            <h1 className="text-5xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
-            <p className="text-center text-gray-600 mb-8 text-2xl">Roll to victory!</p>
+        <div className="flex-1 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-8 md:p-10 w-full max-w-sm sm:max-w-md md:max-w-2xl">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-2 text-amber-900">Dice Game</h1>
+            <p className="text-center text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg md:text-2xl">Roll to victory!</p>
             
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-4">Players</label>
-                <div className="flex gap-3">
+                <label className="block text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-2 sm:mb-4">Players</label>
+                <div className="flex gap-2 sm:gap-3">
                   {[1, 2, 3, 4].map(n => (
                     <button
                       key={n}
                       onClick={() => setNumPlayers(n)}
-                      className={`flex-1 py-3 rounded-lg font-semibold text-lg transition-all ${
+                      className={`flex-1 py-2 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-lg transition-all ${
                         numPlayers === n ? 'bg-amber-700 text-white' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -434,7 +434,7 @@ const DiceGame: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-4">Names</label>
+                <label className="block text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-2 sm:mb-4">Names</label>
                 {Array.from({ length: numPlayers }).map((_, i) => (
                   <input
                     key={i}
@@ -446,19 +446,19 @@ const DiceGame: React.FC = () => {
                       newNames[i] = e.target.value || `Player ${i + 1}`;
                       setPlayerNames(newNames);
                     }}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-3 text-lg focus:outline-none focus:ring-2 focus:ring-amber-700"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-300 rounded-lg mb-2 sm:mb-3 text-sm sm:text-base md:text-lg focus:outline-none focus:ring-2 focus:ring-amber-700"
                   />
                 ))}
               </div>
 
               <div>
-                <label className="block text-lg font-semibold text-gray-700 mb-4">Target Score</label>
-                <div className="flex gap-3">
+                <label className="block text-sm sm:text-base md:text-lg font-semibold text-gray-700 mb-2 sm:mb-4">Target Score</label>
+                <div className="flex gap-2 sm:gap-3 flex-wrap">
                   {[30, 50, 75, 100].map(score => (
                     <button
                       key={score}
                       onClick={() => setTargetScore(score)}
-                      className={`flex-1 py-3 rounded-lg font-semibold text-base transition-all ${
+                      className={`flex-1 min-w-16 py-2 sm:py-3 rounded-lg font-semibold text-xs sm:text-sm md:text-base transition-all ${
                         targetScore === score ? 'bg-amber-700 text-white' : 'bg-gray-200 hover:bg-gray-300'
                       }`}
                     >
@@ -470,7 +470,7 @@ const DiceGame: React.FC = () => {
 
               <button
                 onClick={startGame}
-                className="w-full py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-2xl rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
+                className="w-full py-3 sm:py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg sm:text-xl md:text-2xl rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
               >
                 Start Game
               </button>
@@ -483,13 +483,13 @@ const DiceGame: React.FC = () => {
 
   if (gameState === 'won' && winner !== null) {
     return (
-      <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+      <div className="w-full min-h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col p-2 sm:p-4">
         <MonetagAdLoader />
-        <div className="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="flex-1 flex items-center justify-center relative overflow-hidden">
           {flowers.map(flower => (
             <div
               key={flower.id}
-              className="absolute text-5xl"
+              className="absolute text-3xl sm:text-4xl md:text-5xl"
               style={{
                 left: `${flower.left}%`,
                 top: '-50px',
@@ -501,13 +501,13 @@ const DiceGame: React.FC = () => {
           ))}
           <style>{`@keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }`}</style>
           
-          <div className="text-center">
-            <div className="text-8xl mb-6 animate-bounce">🎉</div>
-            <h1 className="text-6xl font-bold text-white mb-6">{playerNames[winner]} Wins!</h1>
-            <p className="text-3xl text-yellow-100 mb-8">Final Score: {scores[winner]}</p>
+          <div className="text-center px-4">
+            <div className="text-6xl sm:text-7xl md:text-8xl mb-4 sm:mb-6 animate-bounce">🎉</div>
+            <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white mb-3 sm:mb-6">{playerNames[winner]} Wins!</h1>
+            <p className="text-xl sm:text-2xl md:text-3xl text-yellow-100 mb-6 sm:mb-8">Final Score: {scores[winner]}</p>
             <button
               onClick={resetGame}
-              className="px-8 py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-2xl rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-600 to-amber-700 text-white font-bold text-lg sm:text-xl md:text-2xl rounded-lg hover:from-amber-700 hover:to-amber-800 transition-all"
             >
               Play Again
             </button>
@@ -518,57 +518,59 @@ const DiceGame: React.FC = () => {
   }
 
   return (
-    <div className="w-full h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col">
+    <div className="w-full min-h-screen bg-gradient-to-br from-amber-900 via-yellow-800 to-amber-900 flex flex-col p-2 sm:p-4">
       <MonetagAdLoader />
       
-      <div className="flex-1 flex gap-4 p-4">
-        <div className="w-80 space-y-3 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h2 className="font-bold text-xl text-amber-900 mb-4">Scores</h2>
+      <div className="flex-1 flex flex-col lg:flex-row gap-2 sm:gap-4">
+        {/* Sidebar - Hidden on mobile, shown on larger screens */}
+        <div className="hidden lg:block lg:w-80 space-y-3 flex-shrink-0">
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4">
+            <h2 className="font-bold text-lg sm:text-xl text-amber-900 mb-3 sm:mb-4">Scores</h2>
             {Array.from({ length: numPlayers }).map((_, i) => (
               <div
                 key={i}
-                className={`p-3 rounded-lg font-semibold text-lg mb-2 transition-all ${
+                className={`p-2 sm:p-3 rounded-lg font-semibold text-sm sm:text-lg mb-2 transition-all ${
                   currentPlayer === i ? 'bg-amber-600 text-white' : 'bg-gray-100'
                 }`}
               >
-                <div className="text-base opacity-75">{playerNames[i]}</div>
-                <div className="text-3xl font-bold">{scores[i]}</div>
+                <div className="text-xs sm:text-sm opacity-75">{playerNames[i]}</div>
+                <div className="text-2xl sm:text-3xl font-bold">{scores[i]}</div>
               </div>
             ))}
-            <div className="mt-3 pt-3 border-t text-base text-gray-700 font-semibold">Target: {targetScore}</div>
+            <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t text-sm sm:text-base text-gray-700 font-semibold">Target: {targetScore}</div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-lg p-4">
-            <h3 className="font-bold text-amber-900 mb-3 text-lg">Recent</h3>
+          <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4">
+            <h3 className="font-bold text-amber-900 mb-2 sm:mb-3 text-lg sm:text-lg">Recent</h3>
             {rollHistory.length === 0 ? (
-              <p className="text-gray-500 text-base text-center py-2">No rolls</p>
+              <p className="text-gray-500 text-sm text-center py-2">No rolls</p>
             ) : (
               rollHistory.map((roll, i) => (
-                <div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg mb-1 text-base">
+                <div key={i} className="flex justify-between items-center bg-gray-100 p-2 rounded-lg mb-1 text-sm sm:text-base">
                   <span className="truncate font-semibold">{roll[0]}</span>
-                  <span className="bg-amber-600 text-white px-3 py-1 rounded font-bold text-lg">{roll[1]}</span>
+                  <span className="bg-amber-600 text-white px-2 sm:px-3 py-1 rounded font-bold text-base sm:text-lg">{roll[1]}</span>
                 </div>
               ))
             )}
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <div ref={containerRef} className="w-80 h-80 bg-gray-900 rounded-lg shadow-xl" />
+        {/* Main Game Area */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 sm:gap-4">
+          <div ref={containerRef} className="w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-gray-900 rounded-lg shadow-xl" />
           
-          <p className="text-white text-xl font-semibold">
-            <span className="font-bold text-amber-300 text-2xl">{playerNames[currentPlayer]}</span>'s Turn
+          <p className="text-white text-base sm:text-lg md:text-xl font-semibold">
+            <span className="font-bold text-amber-300 text-lg sm:text-xl md:text-2xl">{playerNames[currentPlayer]}</span>'s Turn
           </p>
           
-          {voiceMessage && <p className="text-yellow-200 text-lg text-center bg-black bg-opacity-50 p-3 rounded max-w-xs">{voiceMessage}</p>}
+          {voiceMessage && <p className="text-yellow-200 text-xs sm:text-sm md:text-base text-center bg-black bg-opacity-50 p-2 sm:p-3 rounded max-w-xs">{voiceMessage}</p>}
           
-          {lastRoll && <div className="text-6xl font-bold text-amber-300 animate-bounce">{lastRoll}</div>}
+          {lastRoll && <div className="text-5xl sm:text-6xl font-bold text-amber-300 animate-bounce">{lastRoll}</div>}
 
           <button
             onClick={rollDice}
             disabled={rolling}
-            className={`px-8 py-4 rounded-lg font-bold text-xl transition-all ${
+            className={`px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-lg sm:text-xl transition-all ${
               rolling
                 ? 'bg-gray-500 cursor-not-allowed text-gray-300'
                 : 'bg-green-600 hover:bg-green-700 text-white'
@@ -579,13 +581,14 @@ const DiceGame: React.FC = () => {
 
           <button
             onClick={resetGame}
-            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-lg"
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-sm sm:text-lg"
           >
             End Game
           </button>
         </div>
 
-        <div className="w-80 flex-shrink-0" />
+        {/* Right Spacer - Hidden on mobile */}
+        <div className="hidden lg:block lg:w-80 flex-shrink-0" />
       </div>
     </div>
   );
